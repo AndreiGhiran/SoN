@@ -1,0 +1,163 @@
+
+html>body>nav
+{
+	border-radius: 25px;
+	top:1%;
+	display:flex;
+	background-color:  #a51232;
+	position:absolute;
+	width:99%;	
+	padding:0;
+	box-shadow: 0px 3px 0px 3px rgba(0,0.15,0.15,0.15);
+	border-radius: 25px;
+	
+}
+
+html>body>nav>a
+{
+	display:block;
+	
+}
+
+html>body>nav > ul
+{
+	
+	top:0;
+	right:0;
+	list-style-type:none;
+	width:100vw;
+	white-space:nowrap;
+	display: flex;
+    flex-flow: row wrap;
+    align-items: center;
+    justify-content: space-around;
+	padding:0;
+	margin:0;
+	border:0;
+	
+}
+
+html>body>nav > ul > li
+{
+	width:20%;
+	padding:0;
+	margin:0;
+	border:0;
+	
+}
+
+html>body>nav > ul > li > a
+{
+	border-radius: 5px;
+	margin:0px;
+	display:block;
+	padding:3vh;
+	text-align:center;
+	background-color: #a51232;
+	color: white;
+	text-decoration:none;
+	font-family:Courier new;
+	font-weight:bold;
+	font-size:22px;
+	border:0;
+	size:25px;
+}
+
+
+html>body>nav > ul > li > a:hover
+{
+	background-color:#DD1843;
+	font-family:Courier new;
+	margin:0;
+}
+
+html>body>nav > ul > li > a:visited
+{
+	color:white;
+	text-decoration:none;
+	font-family:Courier new;
+	margin:0;
+}
+
+body
+{
+	background-color:#182b3a;
+}
+
+body>main>h1
+{
+	position:static;
+	margin-top:10%;
+	margin-left:45%;
+	color: white;
+	text-decoration:none;
+	font-family:Courier new;
+	font-weight:bold;
+	font-size:100px;
+}
+
+
+body>main>p
+{	color: white;
+	text-decoration:none;
+	font-family:Courier new;
+	font-weight:bold;
+	font-size:30px;
+}
+
+
+html>body>main> ul.login
+{
+	
+	top:0;
+	right:0;
+	list-style-type:none;
+	width:100vw;
+	white-space:nowrap;
+	display: flex;
+    flex-flow: column wrap;
+    align-items: center;
+    justify-content: space-around;
+	padding:0;
+	margin:0;
+	border:0;
+	
+}
+
+h6
+{
+	color: white;
+	text-decoration:none;
+	font-family:Courier new;
+	font-weight:bold;
+	font-size:22px;
+	margin:3px;
+}
+
+
+html>body> main>ul.login > li
+{
+	
+	width:30%;
+	padding:0;
+	margin:10px;
+	border:10px;
+	background-color:#0f1b24;
+	border-radius: 25px;
+}
+
+html>body> main>ul.login > li>ul>li
+{
+	display:inline-block;
+}
+
+html>body> main>ul.login > li>ul
+{
+	list-style-type:none;
+	
+}
+html>body>main
+{
+	display:flex;
+	margin-top:7%;
+}

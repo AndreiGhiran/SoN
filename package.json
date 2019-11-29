@@ -1,0 +1,26 @@
+{
+  "name": "son",
+  "version": "1.0.0",
+  "description": "A page that helps you track your friends across multiple social netwok sites",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js", 
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AndreiGhiran/SoN.git"
+  },
+  "keywords": [
+    "project",
+    "infoiasi",
+    "staw",
+    "web"
+  ],
+  "author": "Cernat Cristina-Mihaela, Curea Pau-Andrei, Ghiran Andrei",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AndreiGhiran/SoN/issues"
+  },
+  "homepage": "https://github.com/AndreiGhiran/SoN#readme"
+}
