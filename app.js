@@ -123,7 +123,7 @@ app.get('/login.html',function(req,res){
   res.sendFile(path.join(__dirname + '/public/SoN/login.html'));
 });
 
-app.use(express.static('public/SoN'))
+app.use(express.static('public/SoN-pages'))
 
 
 

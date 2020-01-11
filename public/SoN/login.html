@@ -1,0 +1,93 @@
+<html>
+
+	<head>
+		
+		<title> SoN </title>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" media="(min-width:950px)" href="css/styleSheet.css">
+		<link rel="icon" href="images/logoMic.png">
+
+	</head>
+
+	<body>
+		
+		<nav>
+			<ul>
+				<li><a href="index.html">Home</a></li>
+				<li><a href="login.html">LogIn</a></li>
+				<li><a href="recommandations.html">Recommandations</a></li>
+				<li><a href="search.html">Search</a></li>
+				<li><a href="graph.html">Graph</a></li>
+			</ul>
+		</nav>
+		
+		
+		<script src="javascript/login.js"></script>
+		<main>
+			<ul class="login">
+				
+				<li>
+					<ul>
+						<li>
+							<h6>Facebook    </h6>
+						</li>
+						<li>
+							<form action="">
+								<input type="input" name="username" placeholder="Username">
+								<input type="password" name="password" placeholder="Password">
+								<input type="submit" value="LogIn">
+							</form>
+						</li>
+					</ul>
+				</li>
+				
+				<li>
+					<ul>
+						<li>
+							<h6>GitHub</h6>
+						</li>
+						<li>
+							<form >
+								<input type="input" name="username" placeholder="Username" id = "GitHubUsername">
+								<input type="password" name="password" placeholder="Password" id = "GitHubPassword">
+								<input type="submit" value="LogIn" >
+							</form>
+						</li>
+					</ul>
+				</li>
+
+				<li id="TwitterLogIn">
+					<ul>
+						<li>
+							<h6>Twitter</h6>
+						</li>
+						<li>
+							<form method="post" onsubmit="return false;">
+								<input type="submit" value="LogIn" onclick="TwitterLogIn();">
+							</form>
+						</li>
+					</ul>
+				</li>
+			</ul>	
+		</main>
+		<script>
+			var cookies = document.cookie;
+			if(cookies.includes("TwitterLogIn=true"))
+			{
+				var LoggedElement = document.createElement("p")
+				var LogOutButton = document.createElement("button")
+				LogOutButton.setAttribute("type","button");
+				LogOutButton.setAttribute("value","LogOut");
+				LogOutButton.innerText = "LogOut";
+				LogOutButton.setAttribute("onclick","TwitterLogOut();");
+				LoggedElement.innerText = "Already logged with Twitter";
+				TwitterLiElement = document.getElementById("TwitterLogIn");
+				TwitterLiElement.innerHTML = ""
+				TwitterLiElement.appendChild(LoggedElement)
+				TwitterLiElement.appendChild(LogOutButton)
+			}
+			console.log(cookies);
+		</script>
+	</body>
+
+</html>	

@@ -1,0 +1,175 @@
+
+html>body>nav
+{
+	border-radius: 5px;
+	position: fixed;
+	background-color:  #a51232;
+	position:absolute;
+	padding:0;
+	box-shadow: 0px 3px 0px 3px rgba(0,0.15,0.15,0.15);
+}
+
+html>body>nav > ul
+{
+	top:0;
+	right:0;
+	list-style-type:none;
+	width:98vw;
+	white-space:nowrap;
+	display: flex;
+    flex-flow: row wrap;
+    align-items: center;
+    justify-content: space-around;
+	padding:0;
+	margin:0;
+	border:0;
+}
+
+html>body>nav>ul>li
+{
+	width:20%;
+	padding:0;
+	margin:0;
+	border:0;
+}
+
+html>body>nav>ul>li> a
+{
+	border-radius: 5px;
+	margin:0px;
+	display:block;
+	padding:3vh;
+	text-align:center;
+	background-color: #a51232;
+	color: white;
+	text-decoration:none;
+	font-family:Courier new;
+	font-weight:bold;
+	font-size:22px;
+	border:0;
+	size:25px;
+}
+
+
+html>body>nav > ul > li > a:hover
+{
+	background-color:#DD1843;
+}
+
+html>body>nav > ul > li > a:visited
+{
+	color:white;
+	text-decoration:none;
+}
+
+body
+{
+	background-color:#182b3a;
+}
+
+html>body>main
+{
+	display: inline-block;
+	margin-top: 10vh;
+	background-color: #1b3041;
+	border-radius: 5px;
+	height: fit-content;
+	width: 98vw;
+}
+
+html>body>main>*
+{
+	display: block;
+	text-align: center;
+	font-family: 'Courier New', Courier, monospace;
+	color:white;
+}
+
+html>body>main>h1
+{
+	margin-top: 5px;
+	font-weight: 700;
+	font-size: 20vh;
+}
+
+html>body>main>p
+{
+	margin-top: 15px;
+	font-family: 'Courier New', Courier, monospace;
+	font-size: 4vh;
+	font-weight: 500;
+}
+
+html>body>main>ul.login
+{
+	width: 97vw;
+	list-style: none;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+html>body>main>ul.login>li>ul
+{
+	list-style: none;
+	width: min-content;
+	border-radius: 5px;
+	padding:0px;
+	margin: 10px;
+}
+
+html>body>main>ul.login>li
+{ 
+	width: min-content;
+	margin-top: 10px;
+	background-color:#142531;
+	border-radius: 25px;
+}
+
+
+html>body>main>ul.login>li>ul>li  *
+{
+	font-family: 'Courier New', Courier, monospace;
+	font-size: larger;
+	font-weight: 600;
+	margin-bottom: 0px;
+	padding-bottom: 0px;
+	padding-top: 0px;
+	margin-top: 0px;
+	border-radius: 5px;
+}
+
+html>body>main>ul.login>li>ul>li  input
+{
+	border-radius: 5px;
+	margin-top: 1vh;
+}
+
+html>body>main>ul.recommandations
+{
+	list-style: none;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: center
+	width: auto;
+}
+
+html>body>main>ul.recommandations>li
+{ 
+	width: min-content;
+	background-color:#142531;
+	border-radius: 25px;
+	margin: 5px;
+}
+
+
+
+html>body>main>ul.recommandations>li *
+{ 
+	font-family: 'Courier New', Courier, monospace;
+	font-size: larger;
+	font-weight: 600;
+	margin: 10px;
+	border-radius: 5px;
+}
