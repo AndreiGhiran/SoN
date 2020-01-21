@@ -21,9 +21,22 @@
 			</ul>
 		</nav>
 		
+		<script src="javascript/search.js"></script>
 		
 		<main>
 			
+			<form onsubmit = "return false;">
+			<select id = "listSelect">
+				<option value="Twitter">Twitter</option>
+				<option value="Last.fm">Last.fm</option>
+				<option value="All">All</option>
+			</select>
+			<input type="text" placeholder="UserName" id="UserName">
+			<button onclick="searchUsers();" >Search</button>
+		</form>
+
+			<ul class="userList">
+			</ul>
 		</main>
 	</body>
 
