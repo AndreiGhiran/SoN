@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Last.fm Sugestions</title>
+</head>
+
+<body>
+    <input type="input" id="username" placeholder="Username">
+    <button id="button">Get Sugestions</button>
+    <script>
+
+        // functia compara o lista cu numele prietenilor de pe last.fm cu o lista cu numele prietenilor de pe alte site-uri si returneaza o lista cu sugestii de prieteni pe lst.fm
+        function suggest_friends(site_friends, other_friends) {
+            var sugestions = [];
+            for (var i = 0; i < other_friends.length; i++) {
+                var ok = 0;
+                for (var j = 0; j <= site_friends.length; j++) {
+                    if (other_friends[i] == site_friends[j]) {
+                        ok = 1;
+                    }
+                }
+                if (ok == 0) {
+                    sugestions.push(other_friends[i]);
+                }
+            }
+            return sugestions;
+        }
+
+        // Functia asta primeste lista de nume sugerate si adauga in pagina lista cu sugestii
+        function make_sugestions(sugestions) {
+            if (sugestions.length == 0) {
+                list = document.createElement('p');
+                list.innerHTML = "We have no sugestions. You are well-connected.";
+                document.body.appendChild(list);
+            }
+            else {
+                var imgs = [];
+                const Http = new XMLHttpRequest();
+                for (var i = 0; i < sugestions.length; i++) {
+                    var url = `http://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=${sugestions[i]}&api_key=ba2f3e9a0bac03f236b958e0ccd68a0d&format=json`;
+                    Http.open("GET", url, false);
+                    Http.send();
+                    if (Http.status === 200) {
+                        var res = Http.responseText;
+                        res = JSON.parse(res);
+                        var img = res.user.image[1]["#text"];
+                        imgs.push(img);
+
+                    }
+                }
+                markup = `<ul>Last.fm Sugestions:
+                            ${image_n_name(imgs, sugestions)}
+                            </ul>`;
+                list = document.getElementById("Last.fm_sugestions");
+                console.log(list);
+                if (list) {
+                    list.innerHTML = markup;
+                }
+                else {
+                    list = document.createElement("p");
+                    list.setAttribute("id", "Last.fm_sugestions")
+                    list.innerHTML = markup;
+                    document.body.appendChild(list);
+                }
+            }
+        }
+
+        // Functia asta creaza elementele din lista de sugestii
+        function image_n_name(image, names) {
+            markup = ``;
+            for (i = 0; i < names.length; i++) {
+                if (image[i]) {
+                    markup += `<li>
+                                 <img src="${image[i]} "></img> ${names[i]}  
+                                 <form action="https://www.last.fm/user/${names[i]}">
+                                    <input type="submit" value="Go to profile and follow them">
+                                 </form>
+                                </li>`;
+                }
+                else {
+                    markup += `<li>
+                                    <img src="https://lastfm.freetls.fastly.net/i/u/avatar170s/818148bf682d429dc215c1705eb27b98";"></img> ${names[i]} 
+                                    <form action="https://www.last.fm/user/${names[i]}">
+                                        <input type="submit" value="Go to profile and followe them">
+                                    </form>
+                                </li>`;
+                }
+            }
+            return markup;
+        }
+        const username_field = document.getElementById("username");
+        const button = document.getElementById("button");
+        button.addEventListener("click", function () {
+            name = username_field.value;
+            // Lista cu prietenii de pe alte site-uri
+            var friends_on_other_sites = ["KawaiiBroccoli", "ana_maria_mata", "rj"];
+            const Http = new XMLHttpRequest();
+            const url = `http://ws.audioscrobbler.com/2.0/?method=user.getfriends&limit=100&user=${name}&api_key=ba2f3e9a0bac03f236b958e0ccd68a0d&format=json`;
+            Http.open("GET", url);
+            Http.send();
+
+            Http.onreadystatechange = function () {
+                var res = Http.responseText;
+                if (this.readyState == 4 && this.status == 200) {
+                    res = JSON.parse(res);
+                    var count = res.friends["@attr"].total;
+                    let friends = [];
+                    let imgs = [];
+                    for (var i = 0; i < count; i++) {
+                        friends.push(res.friends.user[i].name);
+                    }
+                    friends.sort();
+                    friends_on_other_sites.sort()
+                    var sugestions = suggest_friends(friends, friends_on_other_sites);
+                    make_sugestions(sugestions);
+                }
+                else
+                    if (this.readyState == 4 && this.status == 400) {
+                        var sugestions = suggest_friends([], friends_on_other_sites);
+                        make_sugestions(sugestions);
+                    }
+            }
+
+        })
+    </script>
+</body>
+
+</html>

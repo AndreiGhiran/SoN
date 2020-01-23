@@ -1,0 +1,4 @@
+Application name 	Son_test1
+API key 	ba2f3e9a0bac03f236b958e0ccd68a0d
+Shared secret 	ed57b4cde9eb5505c5c6746bf4a44549
+Registered to 	AndreiGHi
