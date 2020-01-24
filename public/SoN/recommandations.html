@@ -25,6 +25,7 @@
 			<ul class="recommandations">
 			</ul>
 		</main>
+		<script src="javascript/recommandations.js"></script>
 		
 		<script>
 			xhttp = new XMLHttpRequest();
@@ -53,7 +54,7 @@
 									
 									var button = document.createElement("button");
 									button.setAttribute("type","button");
-									button.setAttribute("onclick","addTwitterFriend();")
+									button.setAttribute("onclick","addTwitterFriend(" + res[i]["id_str"] + ");")
 									button.innerText = "Add";
 									listElement.appendChild(siteel);
 									listElement.appendChild(document.createElement("hr"))

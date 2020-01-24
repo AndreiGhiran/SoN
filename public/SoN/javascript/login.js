@@ -23,6 +23,7 @@ function TwitterLogOut()
 			xhttp.onreadystatechange = function() {
 					if (this.readyState == 4 && this.status == 200) {
                         document.cookie = "TwitterLogIn=false";
+                        var res = this.response.split("&");
 						window.open("https://api.twitter.com/oauth/authenticate" + "?oauth_token=" + res[0],"_self");
                         location.reload(true);
 					}
@@ -32,8 +33,3 @@ function TwitterLogOut()
     xhttp.send(); 
 }
 
-
-function addTwitterFriend()
-{
-	
-}

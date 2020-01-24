@@ -151,7 +151,7 @@ html>body>main>ul.recommandations
 	display: flex;
 	flex-direction: row;
 	flex-wrap: wrap;
-	align-items: center
+	align-items: center;
 	width: auto;
 }
 
@@ -167,6 +167,54 @@ html>body>main>ul.recommandations>li
 
 html>body>main>ul.recommandations>li *
 { 
+	
+	font-family: 'Courier New', Courier, monospace;
+	font-size: larger;
+	font-weight: 600;
+	margin: 10px;
+	border-radius: 5px;
+}
+
+form
+{
+	margin-top:10vh;
+}
+
+form>*
+{
+	font-family: 'Courier New', Courier, monospace;
+	font-size: larger;
+	font-weight: 600;
+	margin: 10px;
+	border-radius: 5px;
+
+}
+
+
+
+html>body>main>ul.userList
+{
+	list-style: none;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: center;
+	width: auto;
+}
+
+html>body>main>ul.userList>li
+{ 
+	width: min-content;
+	background-color:#142531;
+	border-radius: 25px;
+	margin: 5px;
+}
+
+
+
+html>body>main>ul.userList>li *
+{ 
+	
 	font-family: 'Courier New', Courier, monospace;
 	font-size: larger;
 	font-weight: 600;
