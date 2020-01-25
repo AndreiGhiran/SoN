@@ -47,7 +47,7 @@ html>body>nav>ul>li> a
 	font-weight:bold;
 	font-size:22px;
 	border:0;
-	size:25px;
+	font-size : 25px;
 }
 
 
@@ -73,7 +73,7 @@ html>body>main
 	margin-top: 10vh;
 	background-color: #1b3041;
 	border-radius: 5px;
-	height: fit-content;
+	height: auto;
 	width: 98vw;
 }
 
@@ -190,8 +190,6 @@ form>*
 
 }
 
-
-
 html>body>main>ul.userList
 {
 	list-style: none;
@@ -220,4 +218,25 @@ html>body>main>ul.userList>li *
 	font-weight: 600;
 	margin: 10px;
 	border-radius: 5px;
+}
+
+
+p
+{
+	font-family: 'Courier New', Courier, monospace;
+	font-size: larger;
+	font-weight: 600;
+	margin: 10px;
+	border-radius: 5px;
+
+}
+
+p ~ button
+{
+	font-family: 'Courier New', Courier, monospace;
+	font-size: larger;
+	font-weight: 600;
+	margin: 10px;
+	border-radius: 5px;
+
 }
