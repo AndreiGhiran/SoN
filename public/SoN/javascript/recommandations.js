@@ -45,6 +45,13 @@ function showResponseFromTwitter(response) {
         addFriendButton.setAttribute("onclick", "addLastfmFriend(" + res["id_str"] + ");");
         addFriendButton.innerText = "Add";
     }
+    if (res["site"] == "Github") {
+        siteName.setAttribute("style", "color:#404448;");
+        var addFriendButton = document.createElement("button");
+        addFriendButton.setAttribute("type", "button");
+        addFriendButton.setAttribute("onclick", "addGithubFriend(" + res["name"] + ");");
+        addFriendButton.innerText = "Add";
+    }
 
     listElement.appendChild(siteName);
     listElement.appendChild(document.createElement("hr"));

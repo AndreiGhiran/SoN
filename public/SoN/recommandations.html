@@ -32,22 +32,33 @@
 		xhttp = new XMLHttpRequest();
 
 		xhttp.onprogress = function (evt) {
-			if (this.response != "no changes") {
-				let resp = this.response.split("}")
-				resp.forEach(el => {
-					if (!obiecte.includes((el + "}")) && el != "") {
-						showResponseFromTwitter(el + "}");
-						obiecte.push((el+"}"));
-					}
+			if (this.response == "Not enough log ins") {
+				const container = document.getElementsByClassName("recommandations")[0];
+				var liEl = document.createElement("li");
+				var resp = document.createElement("P");
+				resp.innerText = "Not enough logins";
 
-				});
-				window.localStorage.setItem("listOfRecommandation",JSON.stringify(obiecte))
-			}
-			else{
-				obiecte = JSON.parse(window.localStorage.getItem("listOfRecommandation"))
-				obiecte.forEach(el=>{
-					showResponseFromTwitter(el)
-				});
+				liEl.appendChild(resp);
+				container.appendChild(liEl);
+			} else {
+				if (this.response == "no changes") {
+					obiecte = JSON.parse(window.localStorage.getItem("listOfRecommandation"))
+					obiecte.forEach(el => {
+						showResponseFromTwitter(el)
+					});
+				} else {
+					let resp = this.response.split("}")
+					resp.forEach(el => {
+						if (!obiecte.includes((el + "}")) && el != "") {
+							showResponseFromTwitter(el + "}");
+							obiecte.push((el + "}"));
+						}
+
+					});
+					window.localStorage.setItem("listOfRecommandation", JSON.stringify(obiecte))
+
+				}
+
 			}
 
 			//console.log(this.response)

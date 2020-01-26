@@ -26,6 +26,20 @@
 
 	<main>
 		<ul class="login">
+			<li id="githubLogIn">
+				<ul>
+					<li>
+						<h6 style="color:#404448;">Github</h6>
+					</li>
+					<li>
+						<form method="post" onsubmit="return false;">
+							<input type="submit" value="LogIn" onclick="githubLogIn();">
+						</form>
+					</li>
+				</ul>
+			</li>
+
+
 			<li id="lastfmLogIn">
 				<ul>
 					<li>
@@ -33,7 +47,8 @@
 					</li>
 					<li>
 						<form method="post" onsubmit="return false;">
-							<input type="text" name="lastfmUsername" placeholder="Username" id="lastfmUsername" required="required">
+							<input type="text" name="lastfmUsername" placeholder="Username" id="lastfmUsername"
+								required="required">
 							<input type="submit" value="Remember" onclick="lastfmIn();">
 						</form>
 					</li>
@@ -93,6 +108,22 @@
 			TwitterLiElement.appendChild(LoggedElement)
 			TwitterLiElement.appendChild(LogOutButton)
 		}
+
+		if (cookies.includes("GithubLogIn=true")) {
+			var LoggedElement = document.createElement("p")
+			var LogOutButton = document.createElement("button")
+			LoggedElement.setAttribute("style", "color:#404448;")
+			LogOutButton.setAttribute("type", "button");
+			LogOutButton.setAttribute("value", "LogOut");
+			LogOutButton.innerText = "LogOut";
+			LogOutButton.setAttribute("onclick", "githubLogOut();");
+			LoggedElement.innerText = "Already logged with Github as " + getCookie("githubUsername");
+			TwitterLiElement = document.getElementById("githubLogIn");
+			TwitterLiElement.innerHTML = ""
+			TwitterLiElement.appendChild(LoggedElement)
+			TwitterLiElement.appendChild(LogOutButton)
+		}
+
 		console.log(cookies);
 
 	</script>

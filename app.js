@@ -10,6 +10,9 @@ var fs = require('fs');
 var app = express();
 app.use(cors());
 app.use(session({ secret: "secret" }));
+session.githubClientId = fs.readFileSync("../github_clientID.txt");
+session.githubClientSecret = fs.readFileSync("../github_client_secret.txt");
+session.githubAccessToken = ""
 session.twitterOauth_verifier = "";
 session.twitterOauth_token = "";
 session.twitterOauth_token_secret = "";
@@ -20,6 +23,7 @@ session.twitterScreen_name = "";
 session.lastfmUsername = "";
 session.twitterFriendsList = [];
 session.lastfmFriendsList = [];
+session.githubFriendsList = [];
 
 app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
@@ -95,6 +99,22 @@ app.post('/index.html', async function(req, res) {
     }
 
     whatToDo = req.header("Why");
+
+    if (whatToDo == "githubIn") {
+        res.send(session.githubClientId)
+    }
+
+    if (whatToDo == "githubOut") {
+        session.githubAccessToken = "";
+        res.send("logged out")
+    }
+
+    if (whatToDo == "getGithubUsername") {
+
+        let name = session.githubUsername;
+        res.send(name)
+        res.end();
+    }
     //console.log(whatToDo)
     if (whatToDo == "getTwitterUsername") {
 
@@ -106,40 +126,48 @@ app.post('/index.html', async function(req, res) {
 
     if (whatToDo == "Recommend") {
 
+        if ([session.twitterScreen_name, session.lastfmUsername, session.githubUsername].filter(el => el != "").length > 1) {
+            let twitterList = (await getTwitterFriends());
 
-        let twitterList = (await getTwitterFriends());
+            let lastfmList = (await getLastfmFriends());
 
-        let lastfmList = (await getLastfmFriends());
+            let githubList = (await getGithubFriends());
 
-        if (JSON.stringify(twitterList) !== JSON.stringify(session.twitterFriendsList) || JSON.stringify(lastfmList) !== JSON.stringify(session.lastfmFriendsList)) {
+            if (JSON.stringify(twitterList) !== JSON.stringify(session.twitterFriendsList) || JSON.stringify(lastfmList) !== JSON.stringify(session.lastfmFriendsList) ||
+                JSON.stringify(githubList) !== JSON.stringify(session.githubFriendsList)) {
 
-            session.twitterFriendsList = twitterList;
-            session.lastfmFriendsList = lastfmList;
+                session.twitterFriendsList = twitterList;
+                session.lastfmFriendsList = lastfmList;
+                session.githubFriendsList = githubList;
 
-            let inTwitterNotInRest = twitterList.filter(x => !lastfmList.includes(x));
+                let peopleNotInLastFm = (session.twitterFriendsList.concat(session.githubFriendsList)).filter(x => !session.lastfmFriendsList.includes(x));
 
-            let inLastfmNotInRest = lastfmList.filter(x => !twitterList.includes(x))
+                let peopleNotInTwitter = (session.lastfmFriendsList.concat(session.githubFriendsList)).filter(x => !session.twitterFriendsList.includes(x));
 
-            let peopleNotInLastFm = inTwitterNotInRest;
+                let peopleNotInGithub = (session.lastfmFriendsList.concat(session.twitterFriendsList)).filter(x => !session.githubFriendsList.includes(x));
 
-            let peopleNotInTwitter = inLastfmNotInRest;
+                let listFoundPeopleNotInLastfm = searchPeopleNotInLastfm(res, peopleNotInLastFm);
 
-            let listFoundPeopleNotInLastfm = searchPeopleNotInLastfm(res, peopleNotInLastFm);
+                let listFoundPeopleNotInTwitter = searchPeopleNotInTwitter(res, peopleNotInTwitter);
 
-            let listFoundPeopleNotInTwitter = searchPeopleNotInTwitter(res, peopleNotInTwitter);
+                let listFoundPopleNotInGithub = searchPeopleNotInGithub(res, peopleNotInGithub);
 
-            var final = (await listFoundPeopleNotInLastfm).concat((await listFoundPeopleNotInTwitter));
+                var final = (await listFoundPeopleNotInLastfm).concat((await listFoundPeopleNotInTwitter)).concat((await listFoundPopleNotInGithub));
 
-            console.log("done with request")
-            res.end()
+                console.log("done with request")
+                res.end()
+            } else {
+                res.write("no changes")
+                console.log("done with request")
+                res.end()
+            }
+            //console.log(final, "final")
+            //res.send(final);
+
         } else {
-            res.write("no changes")
-            console.log("done with request")
-            res.end()
+            res.send("Not enough log ins")
+            res.end();
         }
-        //console.log(final, "final")
-        //res.send(final);
-
 
     }
 
@@ -186,6 +214,19 @@ app.post('/index.html', async function(req, res) {
         if (site == "Last.fm") {
             res.send("Last.fm does not support user searching")
         }
+        if (site == "Github") {
+            request.get({ url: "https://api.github.com/search/users?q=" + userName, headers: { "User-Agent": "SoN", } }, function(error, response, body) {
+                console.log(JSON.parse(body)["items"])
+                if (JSON.parse(body)["items"]) {
+                    res.send(JSON.parse(body)["items"])
+                    res.end();
+                } else {
+                    res.send("error on search")
+                    res.end()
+                }
+
+            });
+        }
     }
 
 
@@ -194,6 +235,20 @@ app.post('/index.html', async function(req, res) {
 
 app.get('/login.html', function(req, res) {
     const query = url.parse(req.url, true).query;
+    if (query.code) {
+        var code = query.code;
+        request.post("https://github.com/login/oauth/access_token?client_id=" + session.githubClientId + "&client_secret=" + session.githubClientSecret + "&code=" + code, function(error, response, body) {
+            if (body.includes("access_token=")) {
+                let access_token = body.split("&")[0].split("=")[1]
+                session.githubAccessToken = access_token;
+                request.get({ url: "https://api.github.com/user", headers: { Authorization: "token " + session.githubAccessToken, "User-Agent": "SoN" } }, function(error, response, body) {
+                    let user = JSON.parse(body);
+                    session.githubUsername = user["login"];
+                });
+            }
+        });
+    }
+
     if (query.oauth_verifier) {
         oauth_verifier = query.oauth_verifier
         oauth_token = query.oauth_token
@@ -344,7 +399,7 @@ async function searchPeopleNotInTwitter(res, peopleNotInTwitter) {
             await asyncForEach(peopleNotInTwitter, async element => {
                 //console.log(element["name"])
                 var prom = new Promise((resolve, reject) => {
-                    client.get("https://api.twitter.com/1.1/users/search.json", { q: element["name"], page: 1, count: 3 }, function(error, response) {
+                    client.get("https://api.twitter.com/1.1/users/search.json", { q: element["name"], page: 1, count: 5 }, function(error, response) {
                         //console.log(JSON.parse(JSON.stringify(response)))
                         if (JSON.parse(JSON.stringify(response))[0]) {
                             var usersFound = JSON.parse(JSON.stringify(response))
@@ -388,6 +443,84 @@ async function searchPeopleNotInTwitter(res, peopleNotInTwitter) {
     return listaCompleta;
 }
 
+
+async function getGithubFriends() {
+    var githubPromise = new Promise((resolve, reject) => {
+        let lista = [];
+        if (session.githubUsername) {
+            request.get({ url: "https://api.github.com/user/following", headers: { Authorization: "token " + session.githubAccessToken, "User-Agent": "SoN" } }, function(error, response, body) {
+                if (JSON.parse(body)) {
+                    var usersFound = JSON.parse(body)
+                    usersFound.forEach(element => {
+                        let person = {
+                            "name": element["login"],
+                        };
+                        lista.push(person);
+
+                    });
+                    resolve(lista)
+                } else {
+                    resolve([
+                        [{ "name": "" }]
+                    ]);
+                }
+
+            });
+        } else {
+            resolve([])
+        }
+    });
+
+    let githubList = (await githubPromise);
+    return githubList;
+}
+
+
+
+async function searchPeopleNotInGithub(res, peopleNotInGithub) {
+    let finalGithubPromise = new Promise(async(resolve, reject) => {
+        var lista = [];
+        if (session.githubUsername && peopleNotInGithub.length > 0) {
+            await asyncForEach(peopleNotInGithub, async element => {
+                var prom = new Promise((resolve, reject) => {
+                    request.get({ url: "https://api.github.com/search/users?q=" + element["name"], headers: { "User-Agent": "SoN", } }, function(error, response, body) {
+                        var users = JSON.parse(body)["items"]
+                        if (JSON.parse(body)["items"]) {
+                            var sublist = []
+                            users.forEach(user => {
+                                let person = {
+                                    "name": user["login"],
+                                    "screen_name": "",
+                                    "image": user["avatar_url"],
+                                    "site": "Github",
+                                    "id_str": user["id"],
+                                };
+                                res.write(JSON.stringify(person))
+                                sublist.push(person);
+                            });
+                            resolve(sublist);
+                        } else {
+                            resolve(null);
+                        }
+
+                    });
+
+                });
+                let awaitingVariable = (await prom);
+                if (awaitingVariable != null)
+                    lista.push(awaitingVariable)
+            });
+            resolve(lista)
+
+
+        } else {
+            resolve([])
+        }
+    });
+
+    let listaCompleta = (await finalGithubPromise);
+    return listaCompleta;
+}
 
 
 app.use(express.static('public/SoN'))

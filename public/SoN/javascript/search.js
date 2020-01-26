@@ -28,6 +28,9 @@ function searchUsers() {
             if (site == "Last.fm") {
                 showSearchResponseLast(this.response);
             }
+            if (site == "Github") {
+                showSearchResponseGithub(this.response);
+            }
         }
     };
     xhttp.open("POST", "https://localhost:3000/index.html", true);
@@ -35,6 +38,46 @@ function searchUsers() {
     xhttp.setRequestHeader("SiteToSearch", site);
     xhttp.setRequestHeader("userName", UserName);
     xhttp.send();
+}
+
+function showSearchResponseGithub(response) {
+    const container = document.getElementsByClassName("userList")[0];
+    container.innerHTML = "";
+    var res = JSON.parse(response);
+    res.forEach(user => {
+        var listElement = document.createElement("li");
+        var userImage = document.createElement("img");
+        userImage.setAttribute("src", user["avatar_url"]);
+        userImage.setAttribute("height", "50px");
+        userImage.setAttribute("width", "50px");
+        userImage.setAttribute("style", "border-radius:50%;");
+
+        var userName = document.createElement("P");
+        userName.innerText = user["login"];
+        var siteName = document.createElement("P");
+        siteName.innerText = "Github";
+        siteName.setAttribute("style", "color:#404448;");
+
+        listElement.appendChild(siteName);
+        listElement.appendChild(document.createElement("hr"));
+        listElement.appendChild(userImage);
+        listElement.appendChild(document.createElement("hr"));
+        listElement.appendChild(userName);
+
+        listElement.setAttribute("id", user["id"]);
+        container.appendChild(listElement);
+        if (document.cookie.includes("GithubLogIn=true")) {
+            listElement.appendChild(document.createElement("hr"));
+            var addFriendButton = document.createElement("button");
+            addFriendButton.setAttribute("type", "button");
+            addFriendButton.setAttribute("onclick", "addGithubFriend(" + user["login"] + ");");
+            addFriendButton.innerText = "Add";
+            listElement.appendChild(addFriendButton);
+        }
+
+
+
+    });
 }
 
 
@@ -66,14 +109,6 @@ function showSearchResponse(response) {
         var siteName = document.createElement("P");
         siteName.innerText = "Twitter";
         siteName.setAttribute("style", "color:#55acee;");
-        if (document.cookie.includes("TwitterLogIn=true")) {
-            var addFriendButton = document.createElement("button");
-            addFriendButton.setAttribute("type", "button");
-            addFriendButton.setAttribute("onclick", "addTwitterFriend(" + res[i]["id_str"] + ");");
-            addFriendButton.innerText = "Add";
-            listElement.appendChild(addFriendButton);
-        }
-
 
         listElement.appendChild(siteName);
         listElement.appendChild(document.createElement("hr"));
@@ -85,5 +120,16 @@ function showSearchResponse(response) {
 
         listElement.setAttribute("id", res[i]["id_str"]);
         container.appendChild(listElement);
+
+        if (document.cookie.includes("TwitterLogIn=true")) {
+            var addFriendButton = document.createElement("button");
+            addFriendButton.setAttribute("type", "button");
+            addFriendButton.setAttribute("onclick", "addTwitterFriend(" + res[i]["id_str"] + ");");
+            addFriendButton.innerText = "Add";
+            listElement.appendChild(addFriendButton);
+        }
+
+
+
     }
 }
