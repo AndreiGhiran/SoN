@@ -18,6 +18,8 @@ session.twitterName = "";
 session.twitterUser_id = "";
 session.twitterScreen_name = "";
 session.lastfmUsername = "";
+session.twitterFriendsList = [];
+session.lastfmFriendsList = [];
 
 app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
@@ -51,11 +53,11 @@ app.post('/index.html', async function(req, res) {
             for (var i = 0; i < string.length; i++) {
                 string[i] = string[i].split("=")
             }
-            console.log(string[2][1])
+            //console.log(string[2][1])
             if (string[2][1] == "true") {
                 session.twitterOauth_token = string[0][1]
                 session.twitterOauth_token_secret = string[1][1]
-                console.log(session.twitterOauth_token, "++++++", session.twitterOauth_token_secret)
+                    //console.log(session.twitterOauth_token, "++++++", session.twitterOauth_token_secret)
             }
             res.send(session.twitterOauth_token + "&" + session.twitterOauth_token_secret);
             res.end();
@@ -72,6 +74,7 @@ app.post('/index.html', async function(req, res) {
         session.twitterName = "";
         session.twitterUser_id = "";
         session.twitterScreen_name = "";
+        session.twitterFriendsList = [];
         res.send("done");
         res.end();
 
@@ -86,12 +89,13 @@ app.post('/index.html', async function(req, res) {
 
     if (requestedSiteAPI == "lastfmOut") {
         session.lastfmUsername = ""
+        session.lastfmFriendsList = [];
         res.send("logged out")
         res.end();
     }
 
     whatToDo = req.header("Why");
-    console.log(whatToDo)
+    //console.log(whatToDo)
     if (whatToDo == "getTwitterUsername") {
 
         let name = session.twitterScreen_name;
@@ -101,182 +105,43 @@ app.post('/index.html', async function(req, res) {
     }
 
     if (whatToDo == "Recommend") {
-        var twitterPromise = new Promise((resolve, reject) => {
-            if (session.twitterScreen_name) {
-                let lista = [];
-                var client = new Twitter({
-                    consumer_key: fs.readFileSync("../consumer_key.txt"),
-                    consumer_secret: fs.readFileSync("../consumer_secret.txt"),
-                    access_token_key: session.twitterOauth_token,
-                    access_token_secret: session.twitterOauth_token_secret
-                });
-
-                client.get("https://api.twitter.com/1.1/account/verify_credentials.json", {}, function(error, response) {
-                    if (response["screen_name"])
-                        session.twitterName = response["screen_name"]
-                    if (session.twitterName) {
-                        client.get("friends/list", { count: 200, screen_name: session.twitterScreen_name, skip_status: "true" }, function(error, response) {
-                            var aux = JSON.parse(JSON.stringify(response))["users"]
-                            aux.forEach(element => {
-                                let person = {
-                                    "name": element["screen_name"],
-                                };
-                                lista.push(person);
-                                resolve(lista);
-                            });
-                        });
-                    } else {
-                        resolve([]);
-                    }
-
-                });
-
-            } else {
-                resolve([]);
-            }
-        });
-        var lastfmPromise = new Promise((resolve, reject) => {
-            let lista = [];
-            if (session.lastfmUsername) {
-                request.get("https://ws.audioscrobbler.com/2.0/?method=user.getfriends&limit=100&user=" + session.lastfmUsername + "&api_key=ba2f3e9a0bac03f236b958e0ccd68a0d&format=json", function(error, response, body) {
-                    if (JSON.parse(body)["friends"]) {
-                        var aux = JSON.parse(body)["friends"]["user"]
-                        aux.forEach(element => {
-                            let person = {
-                                "name": element["name"],
-                            };
-                            lista.push(person);
-
-                        });
-                        resolve(lista)
-                    } else {
-                        resolve([
-                            [{ "name": "" }]
-                        ]);
-                    }
-
-                });
-            } else {
-                resolve([])
-            }
-        });
-        let twitterList = (await twitterPromise);
-        let lastfmList = (await lastfmPromise);
-
-        let inTwitterNotInRest = twitterList.filter(x => !lastfmList.includes(x))
-
-        let finalLastfmPromise = new Promise(async(resolve, reject) => {
-            var lista = [];
-            if (session.lastfmUsername) {
-                await asyncForEach(inTwitterNotInRest, async element => {
-                    var prom = new Promise((resolve, reject) => {
-                        request.get("https://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=" + element["name"] + "&api_key=ba2f3e9a0bac03f236b958e0ccd68a0d&format=json", function(error, response, body) {
-                            var aux = JSON.parse(body)["user"]
-                            if (aux) {
-                                let person = {
-                                    "name": aux["name"],
-                                    "screen_name": "",
-                                    "image": aux["image"]["0"]["#text"],
-                                    "site": "Last.fm",
-                                    "id_str": aux["registered"]["unixtime"],
-                                };
-                                res.write(JSON.stringify(person))
-                                resolve(person);
-                            } else {
-                                resolve(null);
-                            }
-                        });
-                    });
-                    let el = (await prom);
-                    if (el != null)
-                        lista.push(el)
-                });
-                resolve(lista)
 
 
-            } else {
-                resolve([])
-            }
-        });
+        let twitterList = (await getTwitterFriends());
 
+        let lastfmList = (await getLastfmFriends());
 
+        if (JSON.stringify(twitterList) !== JSON.stringify(session.twitterFriendsList) || JSON.stringify(lastfmList) !== JSON.stringify(session.lastfmFriendsList)) {
 
-        let inLastfmNotInRest = lastfmList.filter(x => !twitterList.includes(x))
-        let finalTwitterPromise = new Promise(async(resolve, reject) => {
-            var lista = [];
-            var client = new Twitter({
-                consumer_key: fs.readFileSync("../consumer_key.txt"),
-                consumer_secret: fs.readFileSync("../consumer_secret.txt"),
-                access_token_key: session.twitterOauth_token,
-                access_token_secret: session.twitterOauth_token_secret
-            });
-            if (session.twitterScreen_name && inLastfmNotInRest.length > 0) {
-                await asyncForEach(inLastfmNotInRest, async element => {
-                    console.log(element["name"])
-                    var prom = new Promise((resolve, reject) => {
-                        client.get("https://api.twitter.com/1.1/users/search.json", { q: element["name"], page: 1, count: 3 }, function(error, response) {
-                            //console.log(JSON.parse(JSON.stringify(response)))
-                            if (JSON.parse(JSON.stringify(response))[0]) {
-                                var aux = JSON.parse(JSON.stringify(response))
-                                var sublist = []
-                                aux.forEach(element => {
-                                    let person = {
-                                        "name": element["name"],
-                                        "screen_name": element["screen_name"],
-                                        "image": element["profile_image_url_https"],
-                                        "site": "Twitter",
-                                        "id_str": element["id_str"],
-                                    };
-                                    res.write(JSON.stringify(person))
-                                    sublist.push(person);
-                                });
-                                resolve(sublist);
-                            } else {
-                                resolve([]);
-                            }
+            session.twitterFriendsList = twitterList;
+            session.lastfmFriendsList = lastfmList;
 
-                        });
-                    });
-                    let el = (await prom);
-                    if (el != [])
-                        el.forEach(subel => {
-                            lista.push(subel)
-                        });
+            let inTwitterNotInRest = twitterList.filter(x => !lastfmList.includes(x));
 
-                });
-                console.log(lista)
-                resolve(lista)
+            let inLastfmNotInRest = lastfmList.filter(x => !twitterList.includes(x))
 
+            let peopleNotInLastFm = inTwitterNotInRest;
 
-            } else {
-                resolve([])
-            }
-        });
+            let peopleNotInTwitter = inLastfmNotInRest;
 
-        var final = (await finalLastfmPromise).concat((await finalTwitterPromise))
-            //console.log(final, "final")
-            //res.send(final);
-        res.end()
+            let listFoundPeopleNotInLastfm = searchPeopleNotInLastfm(res, peopleNotInLastFm);
+
+            let listFoundPeopleNotInTwitter = searchPeopleNotInTwitter(res, peopleNotInTwitter);
+
+            var final = (await listFoundPeopleNotInLastfm).concat((await listFoundPeopleNotInTwitter));
+
+            console.log("done with request")
+            res.end()
+        } else {
+            res.write("no changes")
+            console.log("done with request")
+            res.end()
+        }
+        //console.log(final, "final")
+        //res.send(final);
+
 
     }
-
-    //   lastfm
-    //   let person = {
-    //     "name": element["name"],
-    //     "screen_name": "",
-    //     "image": element["image"]["0"]["#text"],
-    //     "site": "Last.fm",
-    //     "id_str": element["registered"]["unixtime"],
-    // };
-
-    //   twitter
-    //   let person = {
-    //     "name": element["name"],
-    //     "screen_name": element["screen_name"],
-    //     "image": element["profile_image_url_https"],
-    //     "site": "Twitter",
-    //     "id_str": element["id_str"],
-    // };
 
     if (whatToDo == "FollowTwitterFriend") {
         console.log("+" + session.twitterOauth_token)
@@ -347,6 +212,183 @@ app.get('/login.html', function(req, res) {
     }
     res.sendFile(path.join(__dirname + '/public/SoN/login.html'));
 });
+
+
+
+async function getTwitterFriends() {
+    var twitterPromise = new Promise((resolve, reject) => {
+        if (session.twitterScreen_name) {
+            let lista = [];
+            var client = new Twitter({
+                consumer_key: fs.readFileSync("../consumer_key.txt"),
+                consumer_secret: fs.readFileSync("../consumer_secret.txt"),
+                access_token_key: session.twitterOauth_token,
+                access_token_secret: session.twitterOauth_token_secret
+            });
+
+            client.get("https://api.twitter.com/1.1/account/verify_credentials.json", {}, function(error, response) {
+                if (response["screen_name"])
+                    session.twitterName = response["screen_name"]
+                if (session.twitterName) {
+                    client.get("friends/list", { count: 200, screen_name: session.twitterScreen_name, skip_status: "true" }, function(error, response) {
+                        var usersFound = JSON.parse(JSON.stringify(response))["users"]
+                        usersFound.forEach(element => {
+                            let person = {
+                                "name": element["screen_name"],
+                            };
+                            lista.push(person);
+                            resolve(lista);
+                        });
+                    });
+                } else {
+                    resolve([]);
+                }
+
+            });
+
+        } else {
+            resolve([]);
+        }
+    });
+
+    let twitterList = (await twitterPromise);
+    return twitterList;
+}
+
+
+
+async function getLastfmFriends() {
+    var lastfmPromise = new Promise((resolve, reject) => {
+        let lista = [];
+        if (session.lastfmUsername) {
+            request.get("https://ws.audioscrobbler.com/2.0/?method=user.getfriends&limit=100&user=" + session.lastfmUsername + "&api_key=ba2f3e9a0bac03f236b958e0ccd68a0d&format=json", function(error, response, body) {
+                if (JSON.parse(body)["friends"]) {
+                    var usersFound = JSON.parse(body)["friends"]["user"]
+                    usersFound.forEach(element => {
+                        let person = {
+                            "name": element["name"],
+                        };
+                        lista.push(person);
+
+                    });
+                    resolve(lista)
+                } else {
+                    resolve([
+                        [{ "name": "" }]
+                    ]);
+                }
+
+            });
+        } else {
+            resolve([])
+        }
+    });
+
+    let lastfmList = (await lastfmPromise);
+    return lastfmList;
+}
+
+
+
+async function searchPeopleNotInLastfm(res, peopleNotInLastfm) {
+    let finalLastfmPromise = new Promise(async(resolve, reject) => {
+        var lista = [];
+        if (session.lastfmUsername && peopleNotInLastfm.length > 0) {
+            await asyncForEach(peopleNotInLastfm, async element => {
+                var prom = new Promise((resolve, reject) => {
+                    request.get("https://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=" + element["name"] + "&api_key=ba2f3e9a0bac03f236b958e0ccd68a0d&format=json", function(error, response, body) {
+                        var userInfo = JSON.parse(body)["user"]
+                        if (userInfo) {
+                            let person = {
+                                "name": userInfo["name"],
+                                "screen_name": "",
+                                "image": userInfo["image"]["0"]["#text"],
+                                "site": "Last.fm",
+                                "id_str": userInfo["registered"]["unixtime"],
+                            };
+                            res.write(JSON.stringify(person))
+                            resolve(person);
+                        } else {
+                            resolve(null);
+                        }
+                    });
+                });
+                let awaitingVariable = (await prom);
+                if (awaitingVariable != null)
+                    lista.push(awaitingVariable)
+            });
+            resolve(lista)
+
+
+        } else {
+            resolve([])
+        }
+    });
+
+    let listaCompleta = (await finalLastfmPromise);
+    return listaCompleta;
+}
+
+
+
+async function searchPeopleNotInTwitter(res, peopleNotInTwitter) {
+    let finalTwitterPromise = new Promise(async(resolve, reject) => {
+        var lista = [];
+        var client = new Twitter({
+            consumer_key: fs.readFileSync("../consumer_key.txt"),
+            consumer_secret: fs.readFileSync("../consumer_secret.txt"),
+            access_token_key: session.twitterOauth_token,
+            access_token_secret: session.twitterOauth_token_secret
+        });
+        if (session.twitterScreen_name && peopleNotInTwitter.length > 0) {
+            await asyncForEach(peopleNotInTwitter, async element => {
+                //console.log(element["name"])
+                var prom = new Promise((resolve, reject) => {
+                    client.get("https://api.twitter.com/1.1/users/search.json", { q: element["name"], page: 1, count: 3 }, function(error, response) {
+                        //console.log(JSON.parse(JSON.stringify(response)))
+                        if (JSON.parse(JSON.stringify(response))[0]) {
+                            var usersFound = JSON.parse(JSON.stringify(response))
+                            var sublist = []
+                            usersFound.forEach(element => {
+                                let person = {
+                                    "name": element["name"],
+                                    "screen_name": element["screen_name"],
+                                    "image": element["profile_image_url_https"],
+                                    "site": "Twitter",
+                                    "id_str": element["id_str"],
+                                };
+                                res.write(JSON.stringify(person))
+                                sublist.push(person);
+                            });
+                            resolve(sublist);
+                        } else {
+                            resolve([]);
+                        }
+
+                    });
+                });
+                let awaitingVariable = (await prom);
+                if (awaitingVariable != [])
+                    awaitingVariable.forEach(subel => {
+                        lista.push(subel)
+                    });
+
+            });
+            //console.log(lista)
+            resolve(lista)
+
+
+        } else {
+            resolve([])
+        }
+    });
+
+
+    let listaCompleta = (await finalTwitterPromise);
+    return listaCompleta;
+}
+
+
 
 app.use(express.static('public/SoN'))
 

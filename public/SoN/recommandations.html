@@ -1,56 +1,63 @@
 <html>
 
-	<head>
-		
-		<title> SoN </title>
-		<meta charset="UTF-8">
-		<link rel="stylesheet" media="(min-width:950px)" href="css/styleSheet.css">
-		
+<head>
 
-	</head>
+	<title> SoN </title>
+	<meta charset="UTF-8">
+	<link rel="stylesheet" media="(min-width:950px)" href="css/styleSheet.css">
 
-	<body>
-		
-		<nav>
-			<ul>
-				<li><a href="index.html">Home</a></li>
-				<li><a href="login.html">LogIn</a></li>
-				<li><a href="recommandations.html">Recommandations</a></li>
-				<li><a href="search.html">Search</a></li>
-				<li><a href="graph.hmtl">Graph</a></li>
-			</ul>
-		</nav>
-		
-		<main class = "center">
-			<ul class="recommandations">
-			</ul>
-		</main>
-		<script src="javascript/recommandations.js"></script>
-		
-		<script>
-			var obiecte = []
-			xhttp = new XMLHttpRequest();
 
-			xhttp.onprogress = function(evt){
+</head>
+
+<body>
+
+	<nav>
+		<ul>
+			<li><a href="index.html">Home</a></li>
+			<li><a href="login.html">LogIn</a></li>
+			<li><a href="recommandations.html">Recommandations</a></li>
+			<li><a href="search.html">Search</a></li>
+			<li><a href="graph.hmtl">Graph</a></li>
+		</ul>
+	</nav>
+
+	<main class="center">
+		<ul class="recommandations">
+		</ul>
+	</main>
+	<script src="javascript/recommandations.js"></script>
+
+	<script>
+		var obiecte = []
+		xhttp = new XMLHttpRequest();
+
+		xhttp.onprogress = function (evt) {
+			if (this.response != "no changes") {
 				let resp = this.response.split("}")
-				resp.forEach(el =>{
-					if(!obiecte.includes(el) && el!= "")
-					{
-						showResponseFromTwitter(el+"}");
-						obiecte.push(el);
+				resp.forEach(el => {
+					if (!obiecte.includes((el + "}")) && el != "") {
+						showResponseFromTwitter(el + "}");
+						obiecte.push((el+"}"));
 					}
-					
+
 				});
-				//console.log(this.response)
-				//showResponseFromTwitter(this.response);
-			} 
-			xhttp.open("POST", "https://localhost:3000/index.html", true);
-			xhttp.setRequestHeader("Why","Recommend");
-			xhttp.send();
+				window.localStorage.setItem("listOfRecommandation",JSON.stringify(obiecte))
+			}
+			else{
+				obiecte = JSON.parse(window.localStorage.getItem("listOfRecommandation"))
+				obiecte.forEach(el=>{
+					showResponseFromTwitter(el)
+				});
+			}
 
-			
-			
-		</script>
-	</body>
+			//console.log(this.response)
+			//showResponseFromTwitter(this.response);
+		}
+		xhttp.open("POST", "https://localhost:3000/index.html", true);
+		xhttp.setRequestHeader("Why", "Recommend");
+		xhttp.send();
 
-</html>	
+	</script>
+</body>
+
+</html>
