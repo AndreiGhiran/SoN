@@ -28,14 +28,22 @@
 		<script src="javascript/recommandations.js"></script>
 		
 		<script>
+			var obiecte = []
 			xhttp = new XMLHttpRequest();
-					xhttp.onreadystatechange = function() {
-							if (this.readyState == 4 && this.status == 200) {
-								console.log(this.response)
-									showResponseFromTwitter(this.response);
-								}
-							
-						};
+
+			xhttp.onprogress = function(evt){
+				let resp = this.response.split("}")
+				resp.forEach(el =>{
+					if(!obiecte.includes(el) && el!= "")
+					{
+						showResponseFromTwitter(el+"}");
+						obiecte.push(el);
+					}
+					
+				});
+				//console.log(this.response)
+				//showResponseFromTwitter(this.response);
+			} 
 			xhttp.open("POST", "https://localhost:3000/index.html", true);
 			xhttp.setRequestHeader("Why","Recommend");
 			xhttp.send();

@@ -2,7 +2,7 @@ window.onload = function() {
     if (window.location.href.includes("oauth_verifier") && cookies.includes("TwitterLogIn=true")) {
         window.open("https://localhost:3000/login.html", "_self")
     }
-    if (cookies.includes("TwitterLogIn=true") && cookies.includes("twitterUsername=;") && !cookies.includes("TwitterLogIn=true")) {
+    if (cookies.includes("TwitterLogIn=true") && cookies.includes("twitterUsername=;")) {
         getTwitterUsername();
     }
     this.console.log(this.document.cookie + "+++");

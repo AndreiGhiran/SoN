@@ -180,6 +180,7 @@ app.post('/index.html', async function(req, res) {
                                     "site": "Last.fm",
                                     "id_str": aux["registered"]["unixtime"],
                                 };
+                                res.write(JSON.stringify(person))
                                 resolve(person);
                             } else {
                                 resolve(null);
@@ -226,6 +227,7 @@ app.post('/index.html', async function(req, res) {
                                         "site": "Twitter",
                                         "id_str": element["id_str"],
                                     };
+                                    res.write(JSON.stringify(person))
                                     sublist.push(person);
                                 });
                                 resolve(sublist);
@@ -253,7 +255,7 @@ app.post('/index.html', async function(req, res) {
 
         var final = (await finalLastfmPromise).concat((await finalTwitterPromise))
             //console.log(final, "final")
-        res.send(final);
+            //res.send(final);
         res.end()
 
     }
