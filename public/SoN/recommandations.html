@@ -1,82 +1,63 @@
 <html>
 
-	<head>
-		
-		<title> SoN </title>
-		<meta charset="UTF-8">
-		<link rel="stylesheet" media="(min-width:950px)" href="css/styleSheet.css">
-		
+<head>
 
-	</head>
+	<title> SoN </title>
+	<meta charset="UTF-8">
+	<link rel="stylesheet" media="(min-width:950px)" href="css/styleSheet.css">
 
-	<body>
-		
-		<nav>
-			<ul>
-				<li><a href="index.html">Home</a></li>
-				<li><a href="login.html">LogIn</a></li>
-				<li><a href="recommandations.html">Recommandations</a></li>
-				<li><a href="search.html">Search</a></li>
-				<li><a href="graph.hmtl">Graph</a></li>
-			</ul>
-		</nav>
-		
-		<main class = "center">
-			<ul class="recommandations">
-			</ul>
-		</main>
-		<script src="javascript/recommandations.js"></script>
-		
-		<script>
-			xhttp = new XMLHttpRequest();
-					xhttp.onreadystatechange = function() {
-							if (this.readyState == 4 && this.status == 200) {
-								console.log(this.response)
-								var res = JSON.parse(this.response)["users"];
-								const container = document.getElementsByClassName("recommandations")[0];
-								for (var i =0 ;i<res.length;i++)
-								{
-									var listElement = document.createElement("li");
-									var img = document.createElement("img");
-									img.setAttribute("src",res[i]["profile_image_url_https"]);
-									img.setAttribute("height","50px");
-									img.setAttribute("width","50px");
-									img.setAttribute("style","border-radius:50%;");
 
-									var nameel = document.createElement("P");
-									nameel.innerText = res[i]["name"];
-									var scrname = document.createElement("P");
-									scrname.innerText = "@" + res[i]["screen_name"];
-									scrname.setAttribute("style","color:#66757f;")
-									var siteel = document.createElement("P");
-									siteel.innerText = "Twitter";
-									siteel.setAttribute("style","color:#55acee;");
-									
-									var button = document.createElement("button");
-									button.setAttribute("type","button");
-									button.setAttribute("onclick","addTwitterFriend(" + res[i]["id_str"] + ");")
-									button.innerText = "Add";
-									listElement.appendChild(siteel);
-									listElement.appendChild(document.createElement("hr"))
-									listElement.appendChild(img);
-									listElement.appendChild(document.createElement("hr"))
-									listElement.appendChild(nameel);
-									listElement.appendChild(document.createElement("hr"))
-									listElement.appendChild(scrname);
-									listElement.appendChild(document.createElement("hr"))
-									listElement.appendChild(button);
-									listElement.setAttribute("id",res[i]["id_str"]);
-									container.appendChild(listElement);
-								}
-							}
-						};
-			xhttp.open("POST", "https://localhost:3000/index.html", true);
-			xhttp.setRequestHeader("Why","TwitterFriends");
-			xhttp.send();
+</head>
 
-			
-			
-		</script>
-	</body>
+<body>
 
-</html>	
+	<nav>
+		<ul>
+			<li><a href="index.html">Home</a></li>
+			<li><a href="login.html">LogIn</a></li>
+			<li><a href="recommandations.html">Recommandations</a></li>
+			<li><a href="search.html">Search</a></li>
+			<li><a href="graph.hmtl">Graph</a></li>
+		</ul>
+	</nav>
+
+	<main class="center">
+		<ul class="recommandations">
+		</ul>
+	</main>
+	<script src="javascript/recommandations.js"></script>
+
+	<script>
+		var obiecte = []
+		xhttp = new XMLHttpRequest();
+
+		xhttp.onprogress = function (evt) {
+			if (this.response != "no changes") {
+				let resp = this.response.split("}")
+				resp.forEach(el => {
+					if (!obiecte.includes((el + "}")) && el != "") {
+						showResponseFromTwitter(el + "}");
+						obiecte.push((el+"}"));
+					}
+
+				});
+				window.localStorage.setItem("listOfRecommandation",JSON.stringify(obiecte))
+			}
+			else{
+				obiecte = JSON.parse(window.localStorage.getItem("listOfRecommandation"))
+				obiecte.forEach(el=>{
+					showResponseFromTwitter(el)
+				});
+			}
+
+			//console.log(this.response)
+			//showResponseFromTwitter(this.response);
+		}
+		xhttp.open("POST", "https://localhost:3000/index.html", true);
+		xhttp.setRequestHeader("Why", "Recommend");
+		xhttp.send();
+
+	</script>
+</body>
+
+</html>
