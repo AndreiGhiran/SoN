@@ -146,6 +146,8 @@ app.post('/index.html', async function(req, res) {
 
                 let peopleNotInGithub = (session.lastfmFriendsList.concat(session.twitterFriendsList)).filter(x => !session.githubFriendsList.includes(x));
 
+                console.log(peopleNotInGithub)
+
                 let listFoundPeopleNotInLastfm = searchPeopleNotInLastfm(res, peopleNotInLastFm);
 
                 let listFoundPeopleNotInTwitter = searchPeopleNotInTwitter(res, peopleNotInTwitter);
@@ -232,7 +234,7 @@ app.post('/index.html', async function(req, res) {
         }
         if (site == "Github") {
             request.get({ url: "https://api.github.com/search/users?q=" + userName, headers: { "User-Agent": "SoN", } }, function(error, response, body) {
-                console.log(JSON.parse(body)["items"])
+                console.log(JSON.parse(body))
                 if (JSON.parse(body)["items"]) {
                     res.send(JSON.parse(body)["items"])
                     res.end();
@@ -275,7 +277,7 @@ app.post('/index.html', async function(req, res) {
             });
 
             var githubSearchPromise = new Promise((resolve, reject) => {
-                request.get({ url: "https://api.github.com/search/users?q=" + userName, headers: { "User-Agent": "SoN", } }, function(error, response, body) {
+                request.get({ url: "https://api.github.com/search/users?q=" + userName + "client_id=" + session.githubClientId + "&client_secret=" + session.githubClientSecret, headers: { "User-Agent": "SoN" } }, function(error, response, body) {
                     let personList = [];
                     if (JSON.parse(body)["items"]) {
                         var users = JSON.parse(body)["items"]
@@ -523,7 +525,8 @@ async function getGithubFriends() {
     var githubPromise = new Promise((resolve, reject) => {
         let lista = [];
         if (session.githubUsername) {
-            request.get({ url: "https://api.github.com/user/following", headers: { Authorization: "token " + session.githubAccessToken, "User-Agent": "SoN" } }, function(error, response, body) {
+            request.get({ url: "https://api.github.com/user/following" + "?client_id=" + session.githubClientId + "&client_secret=" + session.githubClientSecret, headers: { "User-Agent": "SoN" }, headers: { Authorization: "token " + session.githubAccessToken, "User-Agent": "SoN" } }, function(error, response, body) {
+
                 if (JSON.parse(body)) {
                     var usersFound = JSON.parse(body)
                     usersFound.forEach(element => {
@@ -558,7 +561,7 @@ async function searchPeopleNotInGithub(res, peopleNotInGithub) {
         if (session.githubUsername && peopleNotInGithub.length > 0) {
             await asyncForEach(peopleNotInGithub, async element => {
                 var prom = new Promise((resolve, reject) => {
-                    request.get({ url: "https://api.github.com/search/users?q=" + element["name"], headers: { "User-Agent": "SoN", } }, function(error, response, body) {
+                    request.get({ url: "https://api.github.com/search/users?q=" + element["name"] + "&client_id=" + session.githubClientId + "&client_secret=" + session.githubClientSecret, headers: { "User-Agent": "SoN", } }, function(error, response, body) {
                         var users = JSON.parse(body)["items"]
                         if (JSON.parse(body)["items"]) {
                             var sublist = []
