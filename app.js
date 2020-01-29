@@ -230,7 +230,26 @@ app.post('/index.html', async function(req, res) {
             });
         }
         if (site == "Last.fm") {
-            res.send("Last.fm does not support user searching")
+            var url = `http://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=${userName}&api_key=ba2f3e9a0bac03f236b958e0ccd68a0d&format=json`;
+            request.get(url, function(error, response, userInfo) {
+                if(JSON.parse(userInfo)["user"]){
+                    userInfo = JSON.parse(userInfo)["user"];
+                    let person = {
+                        "name": userInfo["name"],
+                        "url": userInfo["url"],
+                        "screen_name": userInfo["realname"],
+                        "image": userInfo["image"]["0"]["#text"],
+                        "site": "Last.fm",
+                        "id_str": userInfo["registered"]["unixtime"],
+                    };
+                    console.log(person)
+                    res.send(person);
+                }
+                else{
+                    console.log("else");
+                    res.send("N");  
+                }
+            });
         }
         if (site == "Github") {
             request.get({ url: "https://api.github.com/search/users?q=" + userName, headers: { "User-Agent": "SoN", } }, function(error, response, body) {
@@ -277,7 +296,7 @@ app.post('/index.html', async function(req, res) {
             });
 
             var githubSearchPromise = new Promise((resolve, reject) => {
-                request.get({ url: "https://api.github.com/search/users?q=" + userName + "client_id=" + session.githubClientId + "&client_secret=" + session.githubClientSecret, headers: { "User-Agent": "SoN" } }, function(error, response, body) {
+                request.get({ url: "https://api.github.com/search/users?q=" + userName + "&client_id=" + session.githubClientId + "&client_secret=" + session.githubClientSecret, headers: { "User-Agent": "SoN" } }, function(error, response, body) {
                     let personList = [];
                     if (JSON.parse(body)["items"]) {
                         var users = JSON.parse(body)["items"]
@@ -299,7 +318,29 @@ app.post('/index.html', async function(req, res) {
                 });
             });
 
-            lista = lista.concat((await twitterSearchPromise)).concat((await githubSearchPromise))
+            var lastfmSearchPromise = new Promise((resolve,reject) => {
+                var url = `http://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=${userName}&api_key=ba2f3e9a0bac03f236b958e0ccd68a0d&format=json`;
+                let personList = [];
+                request.get(url, function(error, response, userInfo) {
+                    if(JSON.parse(userInfo)["user"]){
+                        userInfo = JSON.parse(userInfo)["user"];
+                        console.log(userInfo["name"]);
+                        let person = {
+                            "name": userInfo["name"],
+                            "url": userInfo["url"],
+                            "screen_name": userInfo["realname"],
+                            "image": userInfo["image"]["0"]["#text"],
+                            "site": "Last.fm",
+                            "id_str": userInfo["registered"]["unixtime"],
+                        };
+                        personList.push(person)
+                    }
+                // console.log(personList);
+                resolve(personList);
+                })
+            });
+
+            lista = lista.concat((await twitterSearchPromise)).concat((await githubSearchPromise)).concat((await lastfmSearchPromise));
             res.send(lista)
             res.end();
         }
