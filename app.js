@@ -115,7 +115,7 @@ app.post('/index.html', async function(req, res) {
         res.send(name)
         res.end();
     }
-    //console.log(whatToDo)
+    console.log(whatToDo)
     if (whatToDo == "getTwitterUsername") {
 
         let name = session.twitterScreen_name;
@@ -172,7 +172,7 @@ app.post('/index.html', async function(req, res) {
     }
 
     if (whatToDo == "FollowTwitterFriend") {
-        console.log("+" + session.twitterOauth_token)
+        //console.log("+" + session.twitterOauth_token)
         if (session.twitterOauth_token == "" || session.twitterOauth_token_secret == "") {
             res.send("not Logged");
             res.end();
@@ -193,6 +193,22 @@ app.post('/index.html', async function(req, res) {
 
     }
 
+    if (whatToDo == "allOut") {
+        session.twitterOauth_verifier = "";
+        session.twitterOauth_token = "";
+        session.twitterOauth_token_secret = "";
+        session.twitterName = "";
+        session.twitterUser_id = "";
+        session.twitterScreen_name = "";
+        session.twitterFriendsList = [];
+        session.lastfmUsername = ""
+        session.lastfmFriendsList = [];
+        session.githubFriendsList = [];
+        session.githubAccessToken = "";
+        session.githubUsername = "";
+        res.send("logged out");
+        res.end();
+    }
 
     if (whatToDo == "SearchUser") {
         var site = req.header("SiteToSearch");
@@ -226,6 +242,64 @@ app.post('/index.html', async function(req, res) {
                 }
 
             });
+        }
+        if (site == "All") {
+            var lista = []
+            var twitterSearchPromise = new Promise((resolve, reject) => {
+                var client = new Twitter({
+                    consumer_key: fs.readFileSync("../consumer_key.txt"),
+                    consumer_secret: fs.readFileSync("../consumer_secret.txt"),
+                    access_token_key: fs.readFileSync("../access_token_key.txt"),
+                    access_token_secret: fs.readFileSync("../access_token_secret.txt")
+                });
+
+                client.get("https://api.twitter.com/1.1/users/search.json", { q: userName, page: 1, count: 20 }, function(error, response) {
+                    var userInfo = JSON.parse(JSON.stringify(response))
+                    let personList = [];
+                    if (userInfo) {
+                        userInfo.forEach(user => {
+                            let person = {
+                                "name": user["name"],
+                                "screen_name": user["screen_name"],
+                                "image": user["profile_image_url_https"],
+                                "site": "Twitter",
+                                "id_str": user["id_str"],
+                            };
+                            personList.push(person);
+                        });
+                        resolve(personList)
+                    } else {
+                        resolve([]);
+                    }
+                });
+            });
+
+            var githubSearchPromise = new Promise((resolve, reject) => {
+                request.get({ url: "https://api.github.com/search/users?q=" + userName, headers: { "User-Agent": "SoN", } }, function(error, response, body) {
+                    let personList = [];
+                    if (JSON.parse(body)["items"]) {
+                        var users = JSON.parse(body)["items"]
+                        users.forEach(user => {
+                            let person = {
+                                "name": user["login"],
+                                "screen_name": "",
+                                "image": user["avatar_url"],
+                                "site": "Github",
+                                "id_str": user["id"],
+                            };
+                            personList.push(person)
+                        });
+                        resolve(personList)
+                    } else {
+                        resolve([])
+                    }
+
+                });
+            });
+
+            lista = lista.concat((await twitterSearchPromise)).concat((await githubSearchPromise))
+            res.send(lista)
+            res.end();
         }
     }
 
@@ -292,8 +366,9 @@ async function getTwitterFriends() {
                                 "name": element["screen_name"],
                             };
                             lista.push(person);
-                            resolve(lista);
+
                         });
+                        resolve(lista);
                     });
                 } else {
                     resolve([]);

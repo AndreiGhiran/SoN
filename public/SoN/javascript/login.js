@@ -130,3 +130,22 @@ function githubLogOut() {
     xhttp.setRequestHeader("Why", "githubOut");
     xhttp.send();
 }
+
+
+function LogOutAll() {
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            document.cookie = "GithubLogIn=false";
+            document.cookie = "githubUsername=";
+            document.cookie = "TwitterLogIn=false";
+            document.cookie = "twitterUsername=";
+            document.cookie = "lastfmLogged=false";
+            document.cookie = "lastfmUsername=";
+            location.reload(true);
+        }
+    };
+    xhttp.open("POST", "https://localhost:3000/index.html", true);
+    xhttp.setRequestHeader("Why", "allOut");
+    xhttp.send();
+}
