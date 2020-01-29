@@ -225,8 +225,22 @@ app.post('/index.html', async function(req, res) {
             });
 
             client.get("https://api.twitter.com/1.1/users/search.json", { q: userName, page: 1, count: 20 }, function(error, response) {
-                res.send(response);
-                res.end();
+                if (JSON.parse(JSON.stringify(response))[0]) {
+                    var usersFound = JSON.parse(JSON.stringify(response))
+                    var sublist = []
+                    usersFound.forEach(element => {
+                        let person = {
+                            "name": element["name"],
+                            "screen_name": element["screen_name"],
+                            "image": element["profile_image_url_https"],
+                            "site": "Twitter",
+                            "id_str": element["id_str"],
+                        };
+                        sublist.push(person);
+                    });
+                    res.send(sublist);
+                    res.end();
+                }
             });
         }
         if (site == "Last.fm") {
@@ -234,12 +248,20 @@ app.post('/index.html', async function(req, res) {
         }
         if (site == "Github") {
             request.get({ url: "https://api.github.com/search/users?q=" + userName, headers: { "User-Agent": "SoN", } }, function(error, response, body) {
-                console.log(JSON.parse(body))
+                var users = JSON.parse(body)["items"]
                 if (JSON.parse(body)["items"]) {
-                    res.send(JSON.parse(body)["items"])
-                    res.end();
-                } else {
-                    res.send("error on search")
+                    var sublist = []
+                    users.forEach(user => {
+                        let person = {
+                            "name": user["login"],
+                            "screen_name": "",
+                            "image": user["avatar_url"],
+                            "site": "Github",
+                            "id_str": user["id"],
+                        };
+                        sublist.push(person);
+                    });
+                    res.send(sublist);
                     res.end()
                 }
 
@@ -277,7 +299,7 @@ app.post('/index.html', async function(req, res) {
             });
 
             var githubSearchPromise = new Promise((resolve, reject) => {
-                request.get({ url: "https://api.github.com/search/users?q=" + userName + "client_id=" + session.githubClientId + "&client_secret=" + session.githubClientSecret, headers: { "User-Agent": "SoN" } }, function(error, response, body) {
+                request.get({ url: "https://api.github.com/search/users?q=" + userName + "&client_id=" + session.githubClientId + "&client_secret=" + session.githubClientSecret, headers: { "User-Agent": "SoN" } }, function(error, response, body) {
                     let personList = [];
                     if (JSON.parse(body)["items"]) {
                         var users = JSON.parse(body)["items"]
