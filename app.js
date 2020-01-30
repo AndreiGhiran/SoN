@@ -159,6 +159,7 @@ app.post('/index.html', async function(req, res) {
         });
 
         client.post("https://api.twitter.com/1.1/friendships/create.json" + "?user_id= " + friendId + "&follow=true", {}, function(error, response) {
+            console.log(response);
             res.send(response);
             res.end();
         });
@@ -184,7 +185,130 @@ app.post('/index.html', async function(req, res) {
             });
         }
         if (site == "Last.fm") {
+<<<<<<< Updated upstream
             res.send("Last.fm does not support user searching")
+=======
+            var url = `http://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=${userName}&api_key=ba2f3e9a0bac03f236b958e0ccd68a0d&format=json`;
+            request.get(url, function(error, response, userInfo) {
+                if (JSON.parse(userInfo)["user"]) {
+                    userInfo = JSON.parse(userInfo)["user"];
+                    let person = {
+                        "name": userInfo["name"],
+                        "url": userInfo["url"],
+                        "screen_name": userInfo["realname"],
+                        "image": userInfo["image"]["0"]["#text"],
+                        "site": "Last.fm",
+                        "id_str": userInfo["registered"]["unixtime"],
+                    };
+                    // console.log(person)
+                    res.send(person);
+                } else {
+                    // console.log("else");
+                    res.send("N");
+                }
+            });
+        }
+        if (site == "Github") {
+            request.get({ url: "https://api.github.com/search/users?q=" + userName, headers: { "User-Agent": "SoN", } }, function(error, response, body) {
+                var users = JSON.parse(body)["items"]
+                if (JSON.parse(body)["items"]) {
+                    var sublist = []
+                    users.forEach(user => {
+                        let person = {
+                            "name": user["login"],
+                            "screen_name": "",
+                            "image": user["avatar_url"],
+                            "site": "Github",
+                            "id_str": user["id"],
+                        };
+                        sublist.push(person);
+                    });
+                    res.send(sublist);
+                    res.end()
+                }
+
+            });
+        }
+        if (site == "All") {
+            var lista = []
+            var twitterSearchPromise = new Promise((resolve, reject) => {
+                var client = new Twitter({
+                    consumer_key: fs.readFileSync("../consumer_key.txt"),
+                    consumer_secret: fs.readFileSync("../consumer_secret.txt"),
+                    access_token_key: fs.readFileSync("../access_token_key.txt"),
+                    access_token_secret: fs.readFileSync("../access_token_secret.txt")
+                });
+
+                client.get("https://api.twitter.com/1.1/users/search.json", { q: userName, page: 1, count: 20 }, function(error, response) {
+                    var userInfo = JSON.parse(JSON.stringify(response))
+                    let personList = [];
+                    if (userInfo) {
+                        userInfo.forEach(user => {
+                            let person = {
+                                "name": user["name"],
+                                "screen_name": user["screen_name"],
+                                "image": user["profile_image_url_https"],
+                                "site": "Twitter",
+                                "id_str": user["id_str"],
+                            };
+                            personList.push(person);
+                        });
+                        resolve(personList)
+                    } else {
+                        resolve([]);
+                    }
+                });
+            });
+
+            var githubSearchPromise = new Promise((resolve, reject) => {
+                request.get({ url: "https://api.github.com/search/users?q=" + userName + "&client_id=" + session.githubClientId + "&client_secret=" + session.githubClientSecret, headers: { "User-Agent": "SoN" } }, function(error, response, body) {
+                    let personList = [];
+                    if (JSON.parse(body)["items"]) {
+                        var users = JSON.parse(body)["items"]
+                        users.forEach(user => {
+                            let person = {
+                                "name": user["login"],
+                                "screen_name": "",
+                                "image": user["avatar_url"],
+                                "site": "Github",
+                                "id_str": user["id"],
+                            };
+                            personList.push(person)
+                        });
+                        resolve(personList)
+                    } else {
+                        resolve([])
+                    }
+
+                });
+            });
+
+            var lastfmSearchPromise = new Promise((resolve, reject) => {
+                var url = `http://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=${userName}&api_key=ba2f3e9a0bac03f236b958e0ccd68a0d&format=json`;
+                let personList = [];
+                request.get(url, function(error, response, userInfo) {
+                    if (JSON.parse(userInfo)["user"]) {
+                        userInfo = JSON.parse(userInfo)["user"];
+                        console.log(userInfo["name"]);
+                        let person = {
+                            "name": userInfo["name"],
+                            "url": userInfo["url"],
+                            "screen_name": userInfo["realname"],
+                            "image": userInfo["image"]["0"]["#text"],
+                            "site": "Last.fm",
+                            "id_str": userInfo["registered"]["unixtime"],
+                        };
+                        personList.push(person)
+                    }
+                    // console.log(personList);
+                    resolve(personList);
+                })
+            });
+
+            lista = lista.concat((await twitterSearchPromise)).concat((await githubSearchPromise)).concat((await lastfmSearchPromise))
+            res.send(lista)
+            res.end();
+>>>>>>> Stashed changes
         }
     }
 

@@ -41,9 +41,57 @@ function searchUsers() {
 function showSearchResponseLast(response) {
     const container = document.getElementsByClassName("userList")[0];
     container.innerHTML = "";
-    var resp = document.createElement("P");
-    resp.innerText = response;
-    container.appendChild(resp);
+    if(response.length == 1){
+        var resp = document.createElement("P");
+        resp.innerText = "No user with that username exists on Last.fm!";
+        container.appendChild(resp);
+    }
+    else{
+    res= JSON.parse(response)
+    var listElement = document.createElement("li");
+    var userImage = document.createElement("img");
+    if(res["image"] != '')
+        userImage.setAttribute("src", res["image"]);
+    else
+        userImage.setAttribute("src", "..\\images\\image.png");
+    userImage.setAttribute("height", "50px");
+    userImage.setAttribute("width", "50px");
+    userImage.setAttribute("style", "border-radius:50%;");
+
+    var userName = document.createElement("P");
+    userName.innerText = res["name"];
+
+    if(res["screen_name"] != "")
+    {
+        var userScreenName = document.createElement("P");
+        userScreenName.innerText = "real name: " + res["screen_name"];
+        userScreenName.setAttribute("style", "color:#E4141E;");
+    }
+    var siteName = document.createElement("P");
+    siteName.innerText = "Last.fm";
+    siteName.setAttribute("style", "color:#E4141E;");
+
+    listElement.appendChild(siteName);
+    listElement.appendChild(document.createElement("hr"));
+    listElement.appendChild(userImage);
+    listElement.appendChild(document.createElement("hr"));
+    listElement.appendChild(userName);
+    if(res["screen_name"] != ""){
+        listElement.appendChild(document.createElement("hr"));
+        listElement.appendChild(userScreenName);
+    }
+
+    listElement.setAttribute("id", res["id_str"]);
+    add_button = document.createElement("form");
+    add_button.setAttribute("action",res["url"]);
+    butt = document.createElement("input");
+    butt.setAttribute("type","submit");
+    butt.setAttribute("value","Add");
+    add_button.appendChild(butt);
+    listElement.appendChild(add_button);
+    container.appendChild(listElement);
+    }
+
 }
 
 function showSearchResponse(response) {
@@ -64,6 +112,7 @@ function showSearchResponse(response) {
         userScreenName.innerText = "@" + res[i]["screen_name"];
         userScreenName.setAttribute("style", "color:#66757f;");
         var siteName = document.createElement("P");
+<<<<<<< Updated upstream
         siteName.innerText = "Twitter";
         siteName.setAttribute("style", "color:#55acee;");
         if (document.cookie.includes("TwitterLogIn=true")) {
@@ -87,3 +136,112 @@ function showSearchResponse(response) {
         container.appendChild(listElement);
     }
 }
+=======
+
+        siteName.innerText = person["site"];
+        if (person["site"] == "Twitter") {
+            siteName.setAttribute("style", "color:#55acee;");
+            var addFriendButton = document.createElement("button");
+            addFriendButton.setAttribute("type", "button");
+            addFriendButton.setAttribute("onclick", "addTwitterFriend(" + person["id_str"] + ");");
+            addFriendButton.innerText = "Add";
+        }
+        if (person["site"] == "Last.fm") {
+            siteName.setAttribute("style", "color:#E4141E;");
+            add_button = document.createElement("form");
+            add_button.setAttribute("action",person["url"]);
+            butt = document.createElement("input");
+            butt.setAttribute("type","submit");
+            butt.setAttribute("value","Add");
+            add_button.appendChild(butt);
+        }
+        if (person["site"] == "Github") {
+            siteName.setAttribute("style", "color:#404448;");
+            var addFriendButton = document.createElement("button");
+            addFriendButton.setAttribute("type", "button");
+            addFriendButton.setAttribute("onclick", "addGithubFriend(" + person["name"] + ");");
+            addFriendButton.innerText = "Add";
+        }
+
+        listElement.appendChild(siteName);
+        listElement.appendChild(document.createElement("hr"));
+
+
+
+        listElement.appendChild(userImage);
+        listElement.appendChild(document.createElement("hr"));
+        listElement.appendChild(userName);
+        listElement.appendChild(document.createElement("hr"));
+        if (person["screen_name"]) {
+            var userScreenName = document.createElement("P");
+            userScreenName.innerText = "@" + person["screen_name"];
+            userScreenName.setAttribute("style", "color:#66757f;");
+            listElement.appendChild(userScreenName);
+            listElement.appendChild(document.createElement("hr"));
+        }
+        if (document.cookie.includes(person["site"] + "LogIn=true"))
+            listElement.appendChild(addFriendButton);
+        if (person["site"] == "Last.fm")
+            listElement.appendChild(add_button);
+        listElement.setAttribute("id", person["id_str"]);
+        container.appendChild(listElement);
+    })
+
+}
+
+
+// function showSearchResponseLast(response) {
+//     const container = document.getElementsByClassName("userList")[0];
+//     container.innerHTML = "";
+//     if (response.length == 1) {
+//         var resp = document.createElement("P");
+//         resp.innerText = "No user with that username exists on Last.fm!";
+//         container.appendChild(resp);
+//     } else {
+//         res = JSON.parse(response)
+//         var listElement = document.createElement("li");
+//         var userImage = document.createElement("img");
+//         if (res["image"] != '')
+//             userImage.setAttribute("src", res["image"]);
+//         else
+//             userImage.setAttribute("src", "..\\images\\image.png");
+//         userImage.setAttribute("height", "50px");
+//         userImage.setAttribute("width", "50px");
+//         userImage.setAttribute("style", "border-radius:50%;");
+
+//         var userName = document.createElement("P");
+//         userName.innerText = res["name"];
+
+//         if (res["screen_name"] != "") {
+//             var userScreenName = document.createElement("P");
+//             userScreenName.innerText = "real name: " + res["screen_name"];
+//             userScreenName.setAttribute("style", "color:#E4141E;");
+//         }
+//         var siteName = document.createElement("P");
+//         siteName.innerText = "Last.fm";
+//         siteName.setAttribute("style", "color:#E4141E;");
+
+//         listElement.appendChild(siteName);
+//         listElement.appendChild(document.createElement("hr"));
+//         listElement.appendChild(userImage);
+//         listElement.appendChild(document.createElement("hr"));
+//         listElement.appendChild(userName);
+//         if (res["screen_name"] != "") {
+//             listElement.appendChild(document.createElement("hr"));
+//             listElement.appendChild(userScreenName);
+//         }
+
+//         listElement.setAttribute("id", res["id_str"]);
+//         add_button = document.createElement("form");
+//         add_button.setAttribute("action", "window.open(" + res["url"] + ",_blank);");
+//         butt = document.createElement("input");
+//         butt.setAttribute("type", "submit");
+//         butt.setAttribute("value", "Add");
+//         add_button.appendChild(butt);
+//         if (document.cookie.includes("LastfmLogIn=true"))
+//             listElement.appendChild(add_button);
+//         container.appendChild(listElement);
+//     }
+
+// }
+>>>>>>> Stashed changes

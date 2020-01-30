@@ -39,11 +39,14 @@ function showResponseFromTwitter(response) {
         addFriendButton.innerText = "Add";
     }
     if (res["site"] == "Last.fm") {
-        siteName.setAttribute("style", "color:#b90000;");
-        var addFriendButton = document.createElement("button");
-        addFriendButton.setAttribute("type", "button");
-        addFriendButton.setAttribute("onclick", "addLastfmFriend(" + res["id_str"] + ");");
-        addFriendButton.innerText = "Add";
+        siteName.setAttribute("style", "color:#E4141E;");
+        add_button = document.createElement("form");
+        add_button.setAttribute("action","https://www.last.fm/user/"+res["name"]);
+        butt = document.createElement("input");
+        butt.setAttribute("type","submit");
+        butt.setAttribute("value","Add");
+        add_button.appendChild(butt);
+        // console.log(res);
     }
 
     listElement.appendChild(siteName);
@@ -63,7 +66,11 @@ function showResponseFromTwitter(response) {
         listElement.appendChild(document.createElement("hr"));
     }
 
-    listElement.appendChild(addFriendButton);
+    if (res["site"] == "Last.fm")
+            listElement.appendChild(add_button);
+    else{
+        listElement.appendChild(addFriendButton);
+    }
     listElement.setAttribute("id", res["id_str"]);
     container.appendChild(listElement);
     //}
