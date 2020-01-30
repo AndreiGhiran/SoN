@@ -13,6 +13,7 @@ app.use(session({ secret: "secret" }));
 session.githubClientId = fs.readFileSync("../github_clientID.txt");
 session.githubClientSecret = fs.readFileSync("../github_client_secret.txt");
 session.githubAccessToken = ""
+session.githubUsername = ""
 session.twitterOauth_verifier = "";
 session.twitterOauth_token = "";
 session.twitterOauth_token_secret = "";
@@ -127,11 +128,11 @@ app.post('/index.html', async function(req, res) {
     if (whatToDo == "Recommend") {
 
         if ([session.twitterScreen_name, session.lastfmUsername, session.githubUsername].filter(el => el != "").length > 1) {
-            let twitterList = (await getTwitterFriends());
+            let twitterList = (await getTwitterFriends(session.twitterScreen_name))[0];
 
-            let lastfmList = (await getLastfmFriends());
+            let lastfmList = (await getLastfmFriends(session.lastfmUsername))[0];
 
-            let githubList = (await getGithubFriends());
+            let githubList = (await getGithubFriends(session.githubUsername))[0];
 
             if (JSON.stringify(twitterList) !== JSON.stringify(session.twitterFriendsList) || JSON.stringify(lastfmList) !== JSON.stringify(session.lastfmFriendsList) ||
                 JSON.stringify(githubList) !== JSON.stringify(session.githubFriendsList)) {
@@ -195,6 +196,41 @@ app.post('/index.html', async function(req, res) {
 
     }
 
+
+    if (whatToDo == "FollowGithubFriend") {
+        //console.log("+" + session.twitterOauth_token)
+        if (session.githubAccessToken == "") {
+            res.send("not Logged");
+            res.end();
+        }
+        let friendName = req.header("friendName");
+
+        client.put({ url: "https://api.github.com/user/following/" + friendName, headers: { Authorization: "token " + session.githubAccessToken, "User-Agent": "SoN" } }, function(error, response) {
+            res.send(response);
+            res.end();
+        });
+
+    }
+
+
+    if (whatToDo == "infoForGraph") {
+        console.log([session.twitterScreen_name, session.lastfmUsername, session.githubUsername])
+        if ([session.twitterScreen_name, session.lastfmUsername, session.githubUsername].filter(el => el != "").length == 0) {
+            res.send("not enough login");
+            res.end();
+        } else {
+            let twitterList = (await getTwitterFriends(session.twitterScreen_name));
+
+            let lastfmList = (await getLastfmFriends(session.lastfmUsername));
+
+            let githubList = (await getGithubFriends(session.githubUsername));
+
+            res.send([twitterList, lastfmList, githubList]);
+            res.end();
+        }
+
+    }
+
     if (whatToDo == "allOut") {
         session.twitterOauth_verifier = "";
         session.twitterOauth_token = "";
@@ -244,7 +280,25 @@ app.post('/index.html', async function(req, res) {
             });
         }
         if (site == "Last.fm") {
-            res.send("Last.fm does not support user searching")
+            var url = `http://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=${userName}&api_key=ba2f3e9a0bac03f236b958e0ccd68a0d&format=json`;
+            request.get(url, function(error, response, userInfo) {
+                if (JSON.parse(userInfo)["user"]) {
+                    userInfo = JSON.parse(userInfo)["user"];
+                    let person = {
+                        "name": userInfo["name"],
+                        "url": userInfo["url"],
+                        "screen_name": userInfo["realname"],
+                        "image": userInfo["image"]["0"]["#text"],
+                        "site": "Last.fm",
+                        "id_str": userInfo["registered"]["unixtime"],
+                    };
+                    console.log(person)
+                    res.send(person);
+                } else {
+                    console.log("else");
+                    res.send("N");
+                }
+            });
         }
         if (site == "Github") {
             request.get({ url: "https://api.github.com/search/users?q=" + userName, headers: { "User-Agent": "SoN", } }, function(error, response, body) {
@@ -321,7 +375,29 @@ app.post('/index.html', async function(req, res) {
                 });
             });
 
-            lista = lista.concat((await twitterSearchPromise)).concat((await githubSearchPromise))
+            var lastfmSearchPromise = new Promise((resolve, reject) => {
+                var url = `http://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=${userName}&api_key=ba2f3e9a0bac03f236b958e0ccd68a0d&format=json`;
+                let personList = [];
+                request.get(url, function(error, response, userInfo) {
+                    if (JSON.parse(userInfo)["user"]) {
+                        userInfo = JSON.parse(userInfo)["user"];
+                        console.log(userInfo["name"]);
+                        let person = {
+                            "name": userInfo["name"],
+                            "url": userInfo["url"],
+                            "screen_name": userInfo["realname"],
+                            "image": userInfo["image"]["0"]["#text"],
+                            "site": "Last.fm",
+                            "id_str": userInfo["registered"]["unixtime"],
+                        };
+                        personList.push(person)
+                    }
+                    // console.log(personList);
+                    resolve(personList);
+                })
+            });
+
+            lista = lista.concat((await twitterSearchPromise)).concat((await githubSearchPromise)).concat((await lastfmSearchPromise))
             res.send(lista)
             res.end();
         }
@@ -368,10 +444,11 @@ app.get('/login.html', function(req, res) {
 
 
 
-async function getTwitterFriends() {
+async function getTwitterFriends(name) {
     var twitterPromise = new Promise((resolve, reject) => {
-        if (session.twitterScreen_name) {
+        if (name) {
             let lista = [];
+            let listaImg = [];
             var client = new Twitter({
                 consumer_key: fs.readFileSync("../consumer_key.txt"),
                 consumer_secret: fs.readFileSync("../consumer_secret.txt"),
@@ -383,25 +460,36 @@ async function getTwitterFriends() {
                 if (response["screen_name"])
                     session.twitterName = response["screen_name"]
                 if (session.twitterName) {
-                    client.get("friends/list", { count: 200, screen_name: session.twitterScreen_name, skip_status: "true" }, function(error, response) {
-                        var usersFound = JSON.parse(JSON.stringify(response))["users"]
-                        usersFound.forEach(element => {
-                            let person = {
-                                "name": element["screen_name"],
-                            };
-                            lista.push(person);
+                    client.get("friends/list", { count: 200, screen_name: name, skip_status: "true" }, function(error, response) {
+                        if (JSON.parse(JSON.stringify(response))["users"]) {
+                            var usersFound = JSON.parse(JSON.stringify(response))["users"]
+                            usersFound.forEach(element => {
+                                let person = {
+                                    "name": element["screen_name"],
+                                };
+                                lista.push(person);
+                                listaImg.push({ "img": element["profile_image_url_https"] })
 
-                        });
-                        resolve(lista);
+                            });
+                            resolve([lista, listaImg]);
+                        } else
+                            resolve[[], []]
+
                     });
                 } else {
-                    resolve([]);
+                    resolve([
+                        [],
+                        []
+                    ]);
                 }
 
             });
 
         } else {
-            resolve([]);
+            resolve([
+                [],
+                []
+            ]);
         }
     });
 
@@ -411,11 +499,12 @@ async function getTwitterFriends() {
 
 
 
-async function getLastfmFriends() {
+async function getLastfmFriends(name) {
     var lastfmPromise = new Promise((resolve, reject) => {
         let lista = [];
-        if (session.lastfmUsername) {
-            request.get("https://ws.audioscrobbler.com/2.0/?method=user.getfriends&limit=100&user=" + session.lastfmUsername + "&api_key=ba2f3e9a0bac03f236b958e0ccd68a0d&format=json", function(error, response, body) {
+        let listaImg = [];
+        if (name) {
+            request.get("https://ws.audioscrobbler.com/2.0/?method=user.getfriends&limit=100&user=" + name + "&api_key=ba2f3e9a0bac03f236b958e0ccd68a0d&format=json", function(error, response, body) {
                 if (JSON.parse(body)["friends"]) {
                     var usersFound = JSON.parse(body)["friends"]["user"]
                     usersFound.forEach(element => {
@@ -423,18 +512,22 @@ async function getLastfmFriends() {
                             "name": element["name"],
                         };
                         lista.push(person);
-
+                        listaImg.push({ "img": element["image"]["0"]["#text"] })
                     });
-                    resolve(lista)
+                    resolve([lista, listaImg]);
                 } else {
                     resolve([
-                        [{ "name": "" }]
+                        [],
+                        []
                     ]);
                 }
 
             });
         } else {
-            resolve([])
+            resolve([
+                [],
+                []
+            ]);
         }
     });
 
@@ -543,11 +636,12 @@ async function searchPeopleNotInTwitter(res, peopleNotInTwitter) {
 }
 
 
-async function getGithubFriends() {
+async function getGithubFriends(name) {
     var githubPromise = new Promise((resolve, reject) => {
         let lista = [];
-        if (session.githubUsername) {
-            request.get({ url: "https://api.github.com/user/following" + "?client_id=" + session.githubClientId + "&client_secret=" + session.githubClientSecret, headers: { "User-Agent": "SoN" }, headers: { Authorization: "token " + session.githubAccessToken, "User-Agent": "SoN" } }, function(error, response, body) {
+        let listaImg = [];
+        if (name) {
+            request.get({ url: "https://api.github.com/user/following" + "?client_id=" + session.githubClientId + "&client_secret=" + session.githubClientSecret, headers: { Authorization: "token " + session.githubAccessToken, "User-Agent": "SoN" } }, function(error, response, body) {
 
                 if (JSON.parse(body)) {
                     var usersFound = JSON.parse(body)
@@ -556,18 +650,23 @@ async function getGithubFriends() {
                             "name": element["login"],
                         };
                         lista.push(person);
+                        listaImg.push({ "img": element["avatar_url"] })
 
                     });
-                    resolve(lista)
+                    resolve([lista, listaImg]);
                 } else {
                     resolve([
-                        [{ "name": "" }]
+                        [],
+                        []
                     ]);
                 }
 
             });
         } else {
-            resolve([])
+            resolve([
+                [],
+                []
+            ]);
         }
     });
 

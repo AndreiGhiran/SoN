@@ -23,8 +23,99 @@
 		
 		
 		<main>
-			
+		<ul id = "response">
+			<p>loading</p>
+		</ul>
 		</main>
+		<script type="text/javascript" src="https://unpkg.com/vis-util@latest"></script>
+		<script type="text/javascript" src="https://unpkg.com/vis-data@latest"></script>
+		<script type="text/javascript" src="https://unpkg.com/vis-network@latest/peer/umd/vis-network.min.js"></script>
+		<link rel="stylesheet" type="text/css" href="https://unpkg.com/vis-network/styles/vis-network.min.css" />
+		<div id="mynetwork"></div>
+		<script>
+			window.onload = function(){
+				xhttp = new XMLHttpRequest();
+				xhttp.onreadystatechange = function() {
+					if (this.readyState == 4 && this.status == 200) {
+						if(this.response == "not enough login")
+						{
+							var main = document.getElementById("response")
+							main.innerText = this.response;
+						}
+						else
+						{
+							var id = 0
+							var nodes = [];
+							var edges = [];
+							id+=1
+							nodes.push({id:id,label:"You",color:"green",shape:"circle",font: {face:"Courier New", size:24,color:"white"}});
+							var vectorValori = JSON.parse(this.response)
+							var foaf = "<rdf:RDF>\n"
+							vectorValori[0][0].forEach((person,index) =>{
+								id+=1
+								nodes.push({id:id,label:person["name"],color:"#55acee",shape:"dot",font: {face:"Courier New", size:24,color:"white"}});
+								edges.push({from:1,to:id,length:500,width:3,color:{color:"#55acee"}})
+								foaf += "<foaf:Person rdf:Name="+person["name"]+">\n"
+								foaf += "<foaf:name xml:lang=\"en\">"+person["name"] + "</foaf:name>\n";
+								foaf += "<foaf:img >"+vectorValori[0][1][index]["img"] + "</foaf:img>\n";
+								foaf +="<foaf:OnlineAccount>"
+								foaf +="<foaf:accountName xml:lang=\"en\">" + person["name"] + "</foaf:accountName>\n"
+								foaf +="<foaf:accountServiceHomepage xml:lang=\"en\">https://twitter.com</foaf:accountServiceHomepage>\n"
+								foaf += "</foaf:Person>\n"
+							})
+
+							vectorValori[1][0].forEach((person,index) =>{
+								id+=1
+								nodes.push({id:id,label:person["name"],color:"#b90000",shape:"dot",font: {face:"Courier New", size:24,color:"white"}});
+								edges.push({from:1,to:id,length:750,width:3,color:{color:"#b90000"}})
+								foaf += "<foaf:Person rdf:Name="+person["name"]+">\n"
+								foaf += "<foaf:name xml:lang=\"en\">"+person["name"] + "</foaf:name>\n";
+								foaf += "<foaf:img >"+vectorValori[1][1][index]["img"] + "</foaf:img>\n";
+								foaf +="<foaf:OnlineAccount>"
+								foaf +="<foaf:accountName xml:lang=\"en\">" + person["name"] + "</foaf:accountName>\n"
+								foaf +="<foaf:accountServiceHomepage xml:lang=\"en\">https://last.fm</foaf:accountServiceHomepage>\n"
+								foaf += "</foaf:Person>\n"
+							})
+
+							vectorValori[2][0].forEach((person,index) =>{
+								id+=1
+								nodes.push({id:id,label:person["name"],color:"#404448",shape:"dot",font: {face:"Courier New", size:24,color:"white"}});
+								edges.push({from:1,to:id,length:1000,width:3,color:{color:"#404448"}})
+								foaf += "<foaf:Person rdf:Name="+person["name"]+">\n"
+								foaf += "<foaf:name xml:lang=\"en\">"+person["name"] + "</foaf:name>\n";
+								foaf += "<foaf:img >"+vectorValori[2][1][index]["img"] + "</foaf:img>\n";
+								foaf +="<foaf:OnlineAccount>"
+								foaf +="<foaf:accountName xml:lang=\"en\">" + person["name"] + "</foaf:accountName>\n"
+								foaf +="<foaf:accountServiceHomepage xml:lang=\"en\">https://github.com</foaf:accountServiceHomepage>\n"
+								foaf += "</foaf:Person>\n"
+							})
+							foaf += "</rdf:RDF>"
+
+							var objUrl = window.URL.createObjectURL( new Blob([foaf],{type : "text/plain"}));
+							var main = document.getElementById("response")
+							main.innerHTML = "<a href=\"" + objUrl + "\" target = \"_blank\" id=\"blob\">Link to foaf</a";
+
+
+							var container = document.getElementById("mynetwork");
+							console.log(nodes)
+							var data = {
+								nodes: new vis.DataSet(nodes),
+								edges: new vis.DataSet(edges)
+							};
+							var options = {};
+							var network = new vis.Network(container, data, options);
+						}
+						
+					}
+				};
+				xhttp.open("POST", "https://localhost:3000/index.html", true);
+				xhttp.setRequestHeader("Why", "infoForGraph");
+				xhttp.send();
+			}
+		</script>
+
+		
+		
 	</body>
 
 </html>	

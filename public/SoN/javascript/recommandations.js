@@ -11,6 +11,21 @@ function addTwitterFriend(person_id) {
     xhttp.send();
 }
 
+
+
+function addGithubFriend(person_name) {
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            console.log(response);
+        }
+    };
+    xhttp.open("POST", "https://localhost:3000/index.html", true);
+    xhttp.setRequestHeader("Why", "FollowGithubFriend");
+    xhttp.setRequestHeader("friendName", person_name);
+    xhttp.send();
+}
+
 function showResponseFromTwitter(response) {
     console.log(response)
     var res = JSON.parse(response);

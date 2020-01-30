@@ -110,3 +110,59 @@ function showSearchResponseAll(response) {
     })
 
 }
+
+
+function showSearchResponseLast(response) {
+    const container = document.getElementsByClassName("userList")[0];
+    container.innerHTML = "";
+    if (response.length == 1) {
+        var resp = document.createElement("P");
+        resp.innerText = "No user with that username exists on Last.fm!";
+        container.appendChild(resp);
+    } else {
+        res = JSON.parse(response)
+        var listElement = document.createElement("li");
+        var userImage = document.createElement("img");
+        if (res["image"] != '')
+            userImage.setAttribute("src", res["image"]);
+        else
+            userImage.setAttribute("src", "..\\images\\image.png");
+        userImage.setAttribute("height", "50px");
+        userImage.setAttribute("width", "50px");
+        userImage.setAttribute("style", "border-radius:50%;");
+
+        var userName = document.createElement("P");
+        userName.innerText = res["name"];
+
+        if (res["screen_name"] != "") {
+            var userScreenName = document.createElement("P");
+            userScreenName.innerText = "real name: " + res["screen_name"];
+            userScreenName.setAttribute("style", "color:#E4141E;");
+        }
+        var siteName = document.createElement("P");
+        siteName.innerText = "Last.fm";
+        siteName.setAttribute("style", "color:#E4141E;");
+
+        listElement.appendChild(siteName);
+        listElement.appendChild(document.createElement("hr"));
+        listElement.appendChild(userImage);
+        listElement.appendChild(document.createElement("hr"));
+        listElement.appendChild(userName);
+        if (res["screen_name"] != "") {
+            listElement.appendChild(document.createElement("hr"));
+            listElement.appendChild(userScreenName);
+        }
+
+        listElement.setAttribute("id", res["id_str"]);
+        add_button = document.createElement("form");
+        add_button.setAttribute("action", "window.open(" + res["url"] + ",_blank);");
+        butt = document.createElement("input");
+        butt.setAttribute("type", "submit");
+        butt.setAttribute("value", "Add");
+        add_button.appendChild(butt);
+        if (document.cookie.includes("LastfmLogIn=true"))
+            listElement.appendChild(add_button);
+        container.appendChild(listElement);
+    }
+
+}
